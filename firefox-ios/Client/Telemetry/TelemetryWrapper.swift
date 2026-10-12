@@ -93,7 +93,10 @@ class TelemetryWrapper: TelemetryWrapperProtocol,
         migratePathComponentInDocumentsDirectory("MozTelemetry-Default-mobile-event", to: .cachesDirectory)
         migratePathComponentInDocumentsDirectory("eventArray-MozTelemetry-Default-mobile-event.json", to: .cachesDirectory)
 
-        let sendUsageData = profile.prefs.boolForKey(AppConstants.prefSendUsageData) ?? true
+        // Flameferret: telemetry is never collected or sent, regardless of stored preferences.
+        let sendUsageData = false
+        profile.prefs.setBool(false, forKey: AppConstants.prefSendUsageData)
+        profile.prefs.setBool(false, forKey: AppConstants.prefSendDailyUsagePing)
 
         // Initialize Glean
         initGlean(profile, sendUsageData: sendUsageData)
@@ -101,7 +104,7 @@ class TelemetryWrapper: TelemetryWrapperProtocol,
 
     /// Never follows `prefSendUsageData`: `usage-reporting` is `follows_collection_enabled: false`.
     func shouldSendDailyUsagePing(prefs: Prefs) -> Bool {
-        return prefs.boolForKey(AppConstants.prefSendDailyUsagePing) ?? AppConstants.defaultSendDailyUsagePing
+        return false
     }
 
     @MainActor
@@ -161,7 +164,6 @@ class TelemetryWrapper: TelemetryWrapperProtocol,
                          buildInfo: GleanMetrics.GleanBuild.info)
 
         // Set the metric configuration from Nimbus.
-        glean.applyServerKnobsConfig(FxNimbus.shared.features.gleanServerKnobs.value().toJSONString())
 
         // Save the profile so we can record settings from it when the notification below fires.
         self.profile = profile

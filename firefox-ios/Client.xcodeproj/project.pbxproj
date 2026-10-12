@@ -12626,6 +12626,7 @@
 		FC16179A00000000000000A1 /* WebCompat */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebCompat; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A2 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A1 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
+		FF1A5E7E00000000000000B1 /* Flameferret */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Flameferret; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -17865,6 +17866,7 @@
 				E69DB0B91E97E301008A67E6 /* Telemetry */,
 				E65075551E37F714006961AC /* Utils */,
 				ED9DB41E2DC57DF80072FF5F /* Glean */,
+				FF1A5E7E00000000000000B1 /* Flameferret */,
 			);
 			path = Client;
 			sourceTree = "<group>";
@@ -18665,6 +18667,7 @@
 				ED85DD2C2DE669FF00487807 /* probes */,
 				FC16179A00000000000000A1 /* WebCompat */,
 				FF1A5E7E00000000000000A1 /* WebExtensions */,
+				FF1A5E7E00000000000000B1 /* Flameferret */,
 			);
 			name = Client;
 			packageProductDependencies = (

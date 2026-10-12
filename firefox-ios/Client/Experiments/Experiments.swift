@@ -311,15 +311,15 @@ enum Experiments {
     ///     - firstRun: a flag indicating that this is the first time that the app has been run.
     static func initialize() {
         // Getting the singleton first time initializes it.
-        let nimbus = Experiments.shared
+        var nimbus = Experiments.shared
 
         DefaultLogger.shared.log("Nimbus singleton initialized successfully",
                                  level: .info,
                                  category: .experiments)
 
-        // This does its work on another thread, downloading the experiment recipes
-        // for the next run. It should be the last thing we do before returning.
-        nimbus.fetchExperiments()
+        // Flameferret never downloads experiments; only the defaults built into the app apply.
+        nimbus.experimentParticipation = false
+        nimbus.rolloutParticipation = false
     }
 
     /// Maps each feature ID to the branch slug the user is enrolled in. Features the user is not enrolled in are

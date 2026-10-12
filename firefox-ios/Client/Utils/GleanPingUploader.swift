@@ -7,41 +7,14 @@ import Foundation
 import Glean
 import MozillaAppServices
 
-/// Custom Glean Ping Uploader supporting both OHTTP and HTTP capabilities
+/// Glean ping uploader that never sends anything over the network.
 struct GleanPingUploader: PingUploader {
-    private let logger: Logger
-    private let ohttpUploader: GleanOhttpUploader
-    private let httpUploader: GleanHttpUploader
+    init?() {}
 
-    private enum PingCapabilities: String {
-        case ohttp, http
-    }
-
-    init?(logger: Logger = DefaultLogger.shared) {
-        let environment = OhttpEnvironment.prod
-        guard let configURL = environment.config,
-              let relayUrl = environment.relay else {
-            logger.log("Could not build OHTTP environment", level: .fatal, category: .telemetry)
-            return nil
-        }
-
-        let manager = OhttpManager(configUrl: configURL, relayUrl: relayUrl)
-        self.ohttpUploader = GleanOhttpUploader(manager: manager)
-        self.httpUploader = GleanHttpUploader()
-        self.logger = logger
-    }
-
+    /// Flameferret never uploads telemetry. Reporting the ping as incapable makes Glean discard it.
     func upload(request: CapablePingUploadRequest,
                 callback: @escaping @Sendable (UploadResult) -> Void) {
-        if let capableRequest = request.capable([PingCapabilities.http.rawValue]) {
-            httpUploader.uploadHttpRequest(request: capableRequest, callback: callback)
-        } else if let capableRequest = request.capable([PingCapabilities.ohttp.rawValue]) {
-            ohttpUploader.uploadOhttpRequest(request: capableRequest, callback: callback)
-        } else {
-            logger.log("Rejected ping upload due to unsupported capabilities", level: .info, category: .telemetry)
-            callback(.incapable(unused: 0))
-            return
-        }
+        callback(.incapable(unused: 0))
     }
 }
 

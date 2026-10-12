@@ -17,39 +17,28 @@ public protocol SentryWrapper: Sendable {
 }
 
 public final class DefaultSentry: SentryWrapper {
-    private let dsnKey = "SentryCloudDSN"
     public init() {}
 
     public var crashedInLastRun: Bool {
         return SentrySDK.lastRunStatus == .didCrash
     }
 
+    /// Crash reporting is permanently disabled in Flameferret.
     public var dsn: String? {
-        let bundle = AppInfo.applicationBundle
-        guard let dsn = bundle.object(forInfoDictionaryKey: dsnKey) as? String,
-              !dsn.isEmpty else {
-            return nil
-        }
-        return dsn
+        return nil
     }
 
-    public func startWithConfigureOptions(configure options: @escaping (Options) -> Void) {
-        SentrySDK.start(configureOptions: options)
-    }
+    public func startWithConfigureOptions(configure options: @escaping (Options) -> Void) {}
 
     public func captureMessage(message: String, with scopeBlock: @escaping (Scope) -> Void) {
-        SentrySDK.capture(message: message, block: scopeBlock)
     }
 
     public func captureError(error: Error) {
-        SentrySDK.capture(error: error)
     }
 
     public func addBreadcrumb(crumb: Breadcrumb) {
-        SentrySDK.addBreadcrumb(crumb)
     }
 
     public func configureScope(scope: @escaping (Scope) -> Void) {
-        SentrySDK.configureScope(scope)
     }
 }

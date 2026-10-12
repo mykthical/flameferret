@@ -76,8 +76,12 @@ class AppDelegate: UIResponder,
                                                nightlyAppVersion: AppConstants.nightlyAppVersion,
                                                sharedContainerIdentifier: AppInfo.sharedContainerIdentifier)
 
+        // Refuse app-level requests to Mozilla and analytics hosts before any URLSession exists.
+        NetworkKillSwitch.install()
+
         // Set-up Rust network stack. Note that this has to be called
         // before any Application Services component gets used.
+        // Flameferret's Viaduct backend refuses every request.
         Viaduct.shared.initialize(userAgent: UserAgent.fxaUserAgent)
 
         logger.log("willFinishLaunchingWithOptions begin",
@@ -128,17 +132,8 @@ class AppDelegate: UIResponder,
         // Fix iOS simulator builds for Fennec after running unit tests locally [FXIOS-10712]
         fixSimulatorDevBuild(application)
 
-        pushNotificationSetup()
+        // Flameferret: no push registration, background sync, Firefox Suggest ingestion or MetricKit reports.
         appLaunchUtil?.setUpPostLaunchDependencies()
-        backgroundWorkUtility = BackgroundFetchAndProcessingUtility()
-        backgroundWorkUtility?.registerUtility(BackgroundSyncUtility(profile: profile, application: application))
-        backgroundWorkUtility?.registerUtility(BackgroundNotificationSurfaceUtility())
-
-        if let firefoxSuggest = profile.firefoxSuggest {
-            suggestBackgroundUtility = BackgroundFirefoxSuggestIngestUtility(firefoxSuggest: firefoxSuggest)
-        }
-
-        metricKitWrapper.beginObservingMXPayloads()
 
         let topSitesProvider = TopSitesProviderImplementation(
             placesFetcher: profile.places,
@@ -153,15 +148,6 @@ class AppDelegate: UIResponder,
         }
 
         addObservers()
-
-        /// Prewarm translation resources off the main thread
-        /// This will fetch the translator WASM and model attachments for the device language.
-        /// Running this on a utility QoS to avoid impacting app launch time.
-        if featureFlagsProvider.isEnabled(.translation) {
-            Task(priority: .utility) {
-                await ASTranslationModelsFetcher().prewarmResourcesForStartup()
-            }
-        }
 
         if #available(iOS 17.0, *) {
             ResetTipsSetting.resetDatastoreIfNeeded(prefs: profile.prefs)
@@ -197,13 +183,7 @@ class AppDelegate: UIResponder,
             profile.removeAccount()
         }
 
-        profile.syncManager?.applicationDidBecomeActive()
         webServerUtil?.setUpWebServer()
-
-        // Process any pending app extension telemetry events (e.g., from Share Extension)
-        TelemetryWrapper.shared.processPendingAppExtensionTelemetry(profile: profile)
-
-        TelemetryWrapper.recordEvent(category: .action, method: .foreground, object: .app)
 
         // update top sites widget
         updateTopSitesWidget()
@@ -213,15 +193,7 @@ class AppDelegate: UIResponder,
             self?.profile.cleanupHistoryIfNeeded()
         }
 
-        DispatchQueue.global().async { [weak profile] in
-            profile?.pollCommands(forcePoll: false)
-        }
-
-        verifyAutopushSubscriptions()
-        prefetchMerinoStories()
-        updateWallpaperMetadata()
         loadBackgroundTabs()
-        ingestFirefoxSuggestions(in: application)
 
         logger.log("applicationDidBecomeActive end",
                    level: .info,
@@ -236,10 +208,6 @@ class AppDelegate: UIResponder,
 
     func applicationDidEnterBackground(_ application: UIApplication) {
         logger.log("applicationDidEnterBackground start", level: .info, category: .lifecycle)
-
-        TelemetryWrapper.recordEvent(category: .action, method: .background, object: .app)
-
-        profile.syncManager?.applicationDidEnterBackground()
 
         let singleShotTimer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
         // 2 seconds is ample for a localhost request to be completed by GCDWebServer.
