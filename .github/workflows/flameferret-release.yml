@@ -28,13 +28,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=$(unzip -p Flameferret.ipa Payload/Flameferret.app/Info.plist | plistutil -i - -f xml 2>/dev/null \
-            | grep -A1 CFBundleShortVersionString | tail -1 | sed 's/<[^>]*>//g;s/[[:space:]]//g' || true)
-          TAG="flameferret-${VERSION:-build}-${SOURCE}"
-          gh release delete "$TAG" --repo "${{ github.repository }}" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$TAG" Flameferret.ipa \
-            --repo "${{ github.repository }}" \
-            --target "$SOURCE_FULL" \
-            --title "Flameferret ${VERSION} (${SOURCE})" \
-            --latest \
-            --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. Built from ${SOURCE}. See FLAMEFERRET.md for setup and which extensions work."
+          TAG="flameferret-${SOURCE}"
+          echo "::notice::Publishing $TAG ($(du -h Flameferret.ipa | cut -f1))"
+          gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          if ! out=$(gh release create "$TAG" Flameferret.ipa \
+                --repo "$GITHUB_REPOSITORY" \
+                --target "$SOURCE_FULL" \
+                --title "Flameferret ($SOURCE)" \
+                --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. Built from $SOURCE. See FLAMEFERRET.md for setup and which extensions work." 2>&1); then
+            echo "::error::$(echo "$out" | tr '\n' ' ' | cut -c1-900)"
+            exit 1
+          fi
+          echo "::notice::$out"
