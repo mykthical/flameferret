@@ -1,23 +1,99 @@
 {
-  "fill": {
-    "solid": "srgb:0.10588,0.06667,0.25882,1.00000"
-  },
+  "fill-specializations": [
+    {
+      "value": "automatic"
+    },
+    {
+      "appearance": "dark",
+      "value": "automatic"
+    }
+  ],
   "groups": [
     {
+      "name": "Eye",
       "layers": [
         {
-          "image-name": "flameferret.svg",
-          "name": "flameferret"
+          "image-name": "eye.svg",
+          "name": "eye"
         }
       ],
+      "position": {
+        "scale": 1.7,
+        "translation-in-points": [
+          0,
+          0
+        ]
+      },
       "shadow": {
         "kind": "neutral",
-        "opacity": 0.5
+        "opacity": 0.2
       },
       "translucency": {
         "enabled": false,
         "value": 0.5
       }
+    },
+    {
+      "name": "Ferret",
+      "layers": [
+        {
+          "image-name": "body.svg",
+          "name": "body"
+        }
+      ],
+      "position": {
+        "scale": 1.7,
+        "translation-in-points": [
+          0,
+          0
+        ]
+      },
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.5
+      },
+      "specular": true,
+      "translucency": {
+        "enabled": false,
+        "value": 0.4
+      }
+    },
+    {
+      "name": "Flame",
+      "layers": [
+        {
+          "image-name": "flame.svg",
+          "name": "flame"
+        }
+      ],
+      "position": {
+        "scale": 1.7,
+        "translation-in-points": [
+          0,
+          0
+        ]
+      },
+      "blur-material": 0.3,
+      "shadow": {
+        "kind": "layer-color",
+        "opacity": 0.6
+      },
+      "specular": true,
+      "translucency-specializations": [
+        {
+          "value": {
+            "enabled": true,
+            "value": 0.3
+          }
+        },
+        {
+          "appearance": "tinted",
+          "value": {
+            "enabled": true,
+            "value": 0.8
+          }
+        }
+      ]
     }
   ],
   "supported-platforms": {

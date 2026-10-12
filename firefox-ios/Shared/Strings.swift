@@ -34,11 +34,22 @@ private func MZLocalizedString(
     value: String?,
     comment: String
 ) -> String {
-    return NSLocalizedString(key,
-                             tableName: tableName,
-                             bundle: Strings.bundle,
-                             value: value ?? "",
-                             comment: comment)
+    let localized = NSLocalizedString(key,
+                                      tableName: tableName,
+                                      bundle: Strings.bundle,
+                                      value: value ?? "",
+                                      comment: comment)
+    return flameferretBranded(localized)
+}
+
+/// Shows the Flameferret name wherever translations say "Firefox", keeping other Mozilla product names intact.
+public func flameferretBranded(_ text: String) -> String {
+    guard text.contains("Firefox") else { return text }
+    return text.replacingOccurrences(
+        of: "Firefox(?! (Relay|Focus|Klar|Monitor|Suggest|Nightly|Beta|Daylight|Accounts?\\b|account))",
+        with: "Flameferret",
+        options: .regularExpression
+    )
 }
 
 // This file contains all strings for Firefox iOS.

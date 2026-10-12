@@ -62,6 +62,18 @@ automatically. The widget, share sheet and notification extensions are left out 
 free accounts can only register a few App IDs. Push notifications and Firefox's credential-provider
 autofill don't work in a sideloaded build either, since they need paid-account entitlements.
 
+### Default browser
+
+iOS only offers an app as the default browser if it's signed with Apple's
+`com.apple.developer.web-browser` entitlement, which Apple grants on request to paid developer
+accounts. A sideloaded build can't carry it, so Flameferret won't appear under
+Settings → Apps → Default Browser App. If you have a paid account and Apple approves the
+entitlement, sign the app with your own provisioning profile and it will appear there; the app
+already handles http/https links.
+
+Until then, open links in Flameferret with its URL scheme, for example from a Shortcut's
+*Open URLs* action: `flameferret://open-url?url=https://example.com`.
+
 ### Building on a Mac instead
 
 ```shell
@@ -87,4 +99,7 @@ if Xcode says it's taken.
 - Debug extension pages and content scripts with Safari's Web Inspector (Settings → Safari → Advanced →
   Web Inspector on the phone, then Develop menu on a Mac); background pages show up as separate pages.
 
-The icon artwork is in `branding/`.
+Brand artwork lives in `branding/`: the app icon (`flameferret-icon.svg`), its iOS 26 Liquid Glass
+layers (`glass-layers/`), and `tools/make_brand_assets.py`, which regenerates the in-app logos,
+wordmark and illustrations. Interface text says "Flameferret" wherever translations say "Firefox"
+(see `flameferretBranded` in `firefox-ios/Shared/Strings.swift`).
