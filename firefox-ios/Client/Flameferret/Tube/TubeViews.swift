@@ -196,14 +196,16 @@ final class TubeFollowingFeed: ObservableObject {
         } else {
             accountChannels = []
         }
-        await withTaskGroup(of: [TubeVideo].self) { group in
-            for channel in local {
-                group.addTask { @MainActor in
-                    let json = try? await engine.browse(channel.id, params: TubeChannelView.videosTabParams)
-                    return json.map { TubeParser.page(from: $0).videos } ?? []
+        let channelTasks = local.map { channel in
+            Task { @MainActor () -> [TubeVideo] in
+                guard let json = try? await engine.browse(channel.id, params: TubeChannelView.videosTabParams) else {
+                    return []
                 }
+                return TubeParser.page(from: json).videos
             }
-            for await list in group { all += list }
+        }
+        for task in channelTasks {
+            all += await task.value
         }
         var seen = Set<String>()
         let unique = all.filter { seen.insert($0.id).inserted }
