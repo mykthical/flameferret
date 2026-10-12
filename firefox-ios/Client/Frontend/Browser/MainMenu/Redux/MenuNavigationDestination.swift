@@ -11,6 +11,7 @@ enum MainMenuNavigationDestination: Equatable {
     case defaultBrowser
     case downloads
     case editBookmark
+    case extensions
     case findInPage
     case history
     case passwords
@@ -38,6 +39,7 @@ enum MainMenuNavigationDestination: Equatable {
             .defaultBrowser,
             .downloads,
             .editBookmark,
+            .extensions,
             .findInPage,
             .history,
             .passwords,

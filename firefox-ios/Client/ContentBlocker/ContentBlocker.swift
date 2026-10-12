@@ -236,6 +236,7 @@ class ContentBlocker: Notifiable {
         if let rule = blockImagesRule, tab.imageContentBlockingEnabled() {
             add(contentRuleList: rule, toTab: tab)
         }
+        WebExtensionManager.shared.reapplyRuleLists(to: tab.currentWebView())
     }
 
     private func add(contentRuleList: WKContentRuleList, toTab tab: ContentBlockerTab) {

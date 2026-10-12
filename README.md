@@ -1,3 +1,12 @@
+# Flameferret
+
+**This fork is Flameferret: Firefox for iOS with browser extension support.** See
+[FLAMEFERRET.md](FLAMEFERRET.md) for what works, how to install extensions, and how to build and sideload it.
+
+<img src="branding/flameferret-icon-1024.png" width="128" alt="Flameferret icon">
+
+---
+
 # Firefox for iOS and Focus iOS
 
 Download [Firefox iOS](https://apps.apple.com/app/firefox-web-browser/id989804926) and [Focus iOS](https://itunes.apple.com/app/id1055677337) on the App Store.

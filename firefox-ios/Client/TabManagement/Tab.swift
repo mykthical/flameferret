@@ -537,6 +537,7 @@ class Tab: NSObject,
         let requiredConfiguration = requiredPopupConfiguration ?? configuration
         // Ensures we inject scripts into a new content controller
         requiredConfiguration.userContentController = .init()
+        WebExtensionManager.shared.prepareConfiguration(requiredConfiguration)
         self.configuration = requiredConfiguration
 
         if #available(iOS 18.2, *),
@@ -585,6 +586,17 @@ class Tab: NSObject,
                 self.onWebViewLoadingStateChanged?()
             }
         }
+    }
+
+    /// Reinstalls all user scripts (including extension content scripts) on the existing web view.
+    func reinjectUserScripts() {
+        UserScriptManager.shared.injectUserScriptsIntoWebView(
+            webView,
+            nightMode: nightMode,
+            noImageMode: noImageMode,
+            backgroundAudio: featureFlagsProvider.isEnabled(.backgroundAudio)
+                && BackgroundAudioHelper.isEnabled(profile.prefs)
+        )
     }
 
     func restore(_ webView: WKWebView, interactionState: Data? = nil) {

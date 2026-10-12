@@ -172,6 +172,9 @@ class MainMenuCoordinator: BaseCoordinator {
         case .defaultBrowser:
             DefaultApplicationHelper().openSettings()
 
+        case .extensions:
+            WebExtensionsHubViewController.present(from: nil)
+
         case .webpageSummary(let config):
             navigationHandler?.showSummarizePanel(.mainMenu, config: config)
 

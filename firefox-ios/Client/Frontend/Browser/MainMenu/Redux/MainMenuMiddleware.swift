@@ -233,6 +233,9 @@ final class MainMenuMiddleware {
 
         case .translatePage:
             self.telemetry.mainMenuOptionTapped(with: isHomepage, and: TelemetryAction.translatePage)
+
+        case .extensions:
+            break
         }
     }
 }

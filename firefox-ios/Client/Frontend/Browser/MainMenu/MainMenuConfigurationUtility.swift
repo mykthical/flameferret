@@ -26,6 +26,7 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
         static let avatarCircle = StandardImageIdentifiers.Large.avatarCircle
         static let share = StandardImageIdentifiers.Large.shareApple
         static let reportBrokenSite = StandardImageIdentifiers.Large.report
+        static let extensions = StandardImageIdentifiers.Large.lightning
     }
 
     private let profile: Profile
@@ -209,6 +210,7 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
                         )
                     }
                 ),
+                configureExtensionsItem(with: uuid, and: tabInfo),
                 MenuElement(
                     title: .MainMenu.OtherToolsSection.Settings,
                     iconName: Icons.settings,
@@ -354,6 +356,28 @@ struct MainMenuConfigurationUtility: Equatable, FeatureFlaggable {
             ])
         }
         return MenuSection(isExpanded: isExpanded, options: options)
+    }
+
+    private func configureExtensionsItem(with uuid: WindowUUID, and tabInfo: MainMenuTabInfo) -> MenuElement {
+        return MenuElement(
+            title: "Extensions",
+            iconName: Icons.extensions,
+            isEnabled: true,
+            isActive: false,
+            a11yLabel: "Extensions",
+            a11yHint: "",
+            a11yId: "MainMenu.Extensions",
+            action: {
+                store.dispatch(
+                    MainMenuAction(
+                        windowUUID: uuid,
+                        actionType: MainMenuActionType.tapNavigateToDestination,
+                        navigationDestination: MenuNavigationDestination(.extensions),
+                        telemetryInfo: TelemetryInfo(isHomepage: tabInfo.isHomepage)
+                    )
+                )
+            }
+        )
     }
 
     private func configureReportBrokenSiteItem(

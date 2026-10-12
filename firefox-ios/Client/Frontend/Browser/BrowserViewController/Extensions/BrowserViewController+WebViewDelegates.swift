@@ -596,6 +596,17 @@ extension BrowserViewController: WKNavigationDelegate {
             return
         }
 
+        if url.scheme == WebExtensionURLSchemeHandler.scheme {
+            decisionHandler(.allow)
+            return
+        }
+
+        if navigationAction.targetFrame?.isMainFrame != false, WebExtensionInstaller.isPackageURL(url) {
+            decisionHandler(.cancel)
+            WebExtensionInstaller.shared.installFromURL(url, presenter: self)
+            return
+        }
+
         if isStoreURL(url) {
             decisionHandler(.cancel)
             handleStoreURLNavigation(url: url)
@@ -1316,6 +1327,7 @@ extension BrowserViewController: WKNavigationDelegate {
         webviewTelemetry.start()
         let previousURL = tab.url
         tab.url = webView.url
+        WebExtensionManager.shared.tabDidNavigate(tab, finished: false)
         hideStaleContentOnCrossOriginPopupCommit(for: tab, previousURL: previousURL)
         if let handler = tab.onNextCommit {
             tab.onNextCommit = nil
@@ -1359,6 +1371,9 @@ extension BrowserViewController: WKNavigationDelegate {
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
         // Reveal content hidden on a cross-origin popup commit now that the page has presented.
         webView.isHidden = false
+        if let tab = tabManager[webView] {
+            WebExtensionManager.shared.tabDidNavigate(tab, finished: true)
+        }
         webviewTelemetry.stop()
         recordGoogleLensSearchCompletedIfNeeded(for: tabManager[webView], succeeded: true)
 
