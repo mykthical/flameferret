@@ -41,6 +41,9 @@ xcodebuild build \
     CODE_SIGN_IDENTITY="" \
     CODE_SIGN_ENTITLEMENTS="" \
     COMPILER_INDEX_STORE_ENABLE=NO \
+    ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES="" \
+    ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=NO \
+    DEBUG_INFORMATION_FORMAT=dwarf \
     > "$ROOT/build/xcodebuild.log" 2>&1
 STATUS=$?
 set -e
@@ -60,6 +63,18 @@ APPDIR="$OUT/Payload/Flameferret.app"
 # Free Apple IDs can only register a few App IDs, so drop the widget/share/notification extensions.
 rm -rf "$APPDIR/PlugIns" "$APPDIR/Extensions"
 
+# Debug-only test databases aren't needed on a phone.
+rm -rf "$APPDIR/test-fixtures"
+
+# Strip local and debug symbols to keep the IPA small enough to download from GitHub.
+if command -v xcrun >/dev/null; then
+    find "$APPDIR" -type f \( -perm -u+x -o -name "*.dylib" \) -print0 | while IFS= read -r -d '' binary; do
+        if file "$binary" | grep -q "Mach-O"; then
+            xcrun strip -x "$binary" 2>/dev/null || true
+        fi
+    done
+fi
+
 # Ad-hoc sign so the sideloading tool can read the app group it needs to register.
 if command -v codesign >/dev/null; then
     find "$APPDIR/Frameworks" -maxdepth 1 \( -name "*.framework" -o -name "*.dylib" \) -print0 2>/dev/null \
@@ -68,5 +83,5 @@ if command -v codesign >/dev/null; then
         --entitlements "$ROOT/firefox-ios/Client/Entitlements/FlameferretSideload.entitlements" "$APPDIR"
 fi
 
-(cd "$OUT" && rm -f Flameferret.ipa && zip -qry Flameferret.ipa Payload)
+(cd "$OUT" && rm -f Flameferret.ipa && zip -qry -9 Flameferret.ipa Payload)
 echo "Built $OUT/Flameferret.ipa"

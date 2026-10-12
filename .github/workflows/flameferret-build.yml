@@ -61,8 +61,14 @@ jobs:
       - name: Publish IPA to the ipa-builds branch
         run: |
           cd build/flameferret
+          SIZE=$(stat -f%z Flameferret.ipa)
+          echo "::notice title=IPA size::$((SIZE / 1048576)) MB"
           mkdir publish && cd publish
-          split -b 45m ../Flameferret.ipa Flameferret.ipa.part-
+          if [ "$SIZE" -lt 99000000 ]; then
+            cp ../Flameferret.ipa Flameferret.ipa
+          else
+            split -b 45m ../Flameferret.ipa Flameferret.ipa.part-
+          fi
           shasum -a 256 ../Flameferret.ipa | cut -d' ' -f1 > Flameferret.ipa.sha256
           echo "${GITHUB_SHA}" > SOURCE_COMMIT
           git init -q -b ipa-builds
@@ -73,12 +79,12 @@ jobs:
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipa-builds
 
       - name: Publish release
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="flameferret-build-${GITHUB_SHA::7}"
-          gh release create "$TAG" build/flameferret/Flameferret.ipa \
-            --repo "${{ github.repository }}" --target "$GITHUB_SHA" --latest \
+          gh release create "flameferret-${GITHUB_SHA::7}" build/flameferret/Flameferret.ipa \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest \
             --title "Flameferret (${GITHUB_SHA::7})" \
             --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. See FLAMEFERRET.md."
 
