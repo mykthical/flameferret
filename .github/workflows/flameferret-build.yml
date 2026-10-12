@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths-ignore:
       - "**.md"
+      - ".github/**"
 
 permissions:
   contents: write
@@ -70,6 +71,16 @@ jobs:
           git add -A
           git commit -q -m "Flameferret IPA from ${GITHUB_SHA::7}"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipa-builds
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="flameferret-build-${GITHUB_SHA::7}"
+          gh release create "$TAG" build/flameferret/Flameferret.ipa \
+            --repo "${{ github.repository }}" --target "$GITHUB_SHA" --latest \
+            --title "Flameferret (${GITHUB_SHA::7})" \
+            --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. See FLAMEFERRET.md."
 
       - name: Upload build log
         if: failure()
