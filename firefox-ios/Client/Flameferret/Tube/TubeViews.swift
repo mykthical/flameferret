@@ -99,9 +99,7 @@ struct TubeHomeView: View {
         let args = ProcessInfo.processInfo.arguments
         guard router.homePath.isEmpty else { return }
         var target: TubeVideo?
-        if let index = args.firstIndex(of: "-openVideo"), index + 1 < args.count {
-            target = TubeVideo(id: args[index + 1], title: "")
-        } else if args.contains("-openFirstVideo") {
+        if args.contains("-openFirstVideo") {
             target = feed.videos.first
         }
         guard let target else { return }

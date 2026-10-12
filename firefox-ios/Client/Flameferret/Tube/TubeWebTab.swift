@@ -102,6 +102,27 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         Task { await tab.close() }
     }
 
+    /// A snapshot of the player page's state, for diagnostics.
+    func debugState() async -> String {
+        let js = """
+            const v = document.querySelector('video');
+            const p = document.querySelector('#player-container-id, .player-container');
+            const r = p ? p.getBoundingClientRect() : null;
+            return JSON.stringify({
+              url: location.href, title: document.title, video: !!v,
+              readyState: v ? v.readyState : -1, paused: v ? v.paused : null,
+              currentTime: v ? v.currentTime : null, src: v ? (v.currentSrc || '').slice(0, 60) : null,
+              player: r ? [r.x, r.y, r.width, r.height] : null,
+              ad: !!document.querySelector('.ad-showing, .ad-interrupting'),
+              sponsorBlock: !!document.querySelector('[id^="sponsorBlock"], .sponsorBlockCategory, #previewbar'),
+              text: (document.body ? document.body.innerText : '').slice(0, 160)
+            });
+            """
+        guard let webView else { return "no web view" }
+        let result = try? await webView.callAsyncJavaScript(js, contentWorld: .page)
+        return result as? String ?? "no result"
+    }
+
     func pause() {
         webView?.evaluateJavaScript("document.querySelectorAll('video').forEach(v => v.pause());", in: nil, in: .page)
     }
@@ -172,9 +193,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     /// Shows only the video player, filling the web view.
     private static let playerCSS = pageCSS + """
         html, body { background: #000 !important; overflow: hidden !important; }
-        ytm-single-column-watch-next-results-renderer, .watch-below-the-player, ytm-watch, ytm-item-section-renderer,
-        ytm-engagement-panel, ytm-slim-video-metadata-section-renderer, ytm-comments-entry-point-header-renderer,
-        bottom-sheet-container, .related-chips-slot-wrapper { display: none !important; }
+        .watch-below-the-player, ytm-single-column-watch-next-results-renderer { visibility: hidden !important; }
         #player-container-id, .player-container, #player-control-container {
           position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
           width: 100vw !important; height: 100vh !important; padding: 0 !important; margin: 0 !important;

@@ -92,6 +92,9 @@ struct TubeRootView: View {
     /// Used by the CI simulator check: `-tab search|following|saved|settings`.
     private func applyLaunchArguments() {
         let args = ProcessInfo.processInfo.arguments
+        if let index = args.firstIndex(of: "-openVideo"), index + 1 < args.count {
+            router.homePath.append(TubeVideo(id: args[index + 1], title: ""))
+        }
         guard let index = args.firstIndex(of: "-tab"), index + 1 < args.count else { return }
         switch args[index + 1] {
         case "search": router.selection = .search

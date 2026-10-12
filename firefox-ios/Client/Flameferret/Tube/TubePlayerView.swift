@@ -92,6 +92,13 @@ struct TubePlayerView: View {
         .task(id: model.videoID) {
             if model.details == nil { await model.loadDetails() }
         }
+        .task {
+            guard ProcessInfo.processInfo.arguments.contains("-openVideo") else { return }
+            for _ in 0..<8 {
+                try? await Task.sleep(nanoseconds: 8_000_000_000)
+                TubeEngine.log("player: \(await model.webTab.debugState())")
+            }
+        }
     }
 
     // MARK: Details
