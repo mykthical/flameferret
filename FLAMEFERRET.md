@@ -6,6 +6,28 @@ Firefox (`.xpi`) and Chrome (`.crx`) extension packages and runs them on top of 
 It is not affiliated with or endorsed by Mozilla. "Firefox" is a trademark of the Mozilla Foundation;
 this build is renamed so it can't be confused with the real app and can be installed next to it.
 
+## The YouTube app
+
+Flameferret opens straight into a native YouTube client (Home, Following, Saved, Settings and Search),
+styled after RUTUBE X. Firefox's own browser screens are no longer shown.
+
+- **Lists are native**, fetched from YouTube inside a hidden Flameferret web view so your optional
+  YouTube sign-in applies. Following and Saved also work signed out and stay on the phone.
+- **Playback uses YouTube's own player** in a Flameferret tab, with the page around it hidden.
+  uBlock Origin Lite and SponsorBlock ship inside the app (`firefox-ios/Client/Flameferret/BundledExtensions`)
+  and run on every video. Background audio and Picture in Picture are on.
+- **No data collection:** Glean never uploads, Sentry and Nimbus fetches are off, the Rust components'
+  network backend refuses every request (so Firefox Sync, accounts, push, Suggest and remote settings
+  can't reach Mozilla), and a URL-session kill switch refuses Mozilla, analytics and attribution hosts.
+  The only exception is addons.mozilla.org when you install another extension yourself.
+- The shell's code lives in `firefox-ios/Client/Flameferret/`.
+- **Simulator screenshots:** the *Flameferret simulator check* workflow builds for the simulator,
+  takes screenshots of each screen and pushes them to the `sim` branch.
+
+Bundled extension versions: uBlock Origin Lite 2026.914.1325 (GPLv3, github.com/uBlockOrigin/uBOL-home)
+and SponsorBlock 6.1.7 (github.com/ajayyy/SponsorBlock). To update, replace the `.xpi` files; the app
+reinstalls a bundled extension whenever its file changes.
+
 ## What works and what doesn't
 
 iOS requires every browser to use WebKit, so extensions run through WebKit's APIs rather than Firefox's

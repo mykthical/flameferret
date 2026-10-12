@@ -43,6 +43,21 @@ class SceneDelegate: UIResponder,
         guard !AppConstants.isRunningUnitTest else { return }
         logger.log("SceneDelegate: will connect to session", level: .info, category: .lifecycle)
 
+        // Flameferret opens straight into the YouTube shell; Firefox's browser UI is never shown.
+        if let windowScene = scene as? UIWindowScene {
+            let window = UIWindow(windowScene: windowScene)
+            window.rootViewController = TubeShell.makeRootViewController()
+            window.makeKeyAndVisible()
+            self.window = window
+            for context in connectionOptions.urlContexts {
+                TubeShell.handleIncoming(context.url)
+            }
+            if let activityURL = connectionOptions.userActivities.first?.webpageURL {
+                TubeShell.handleIncoming(activityURL)
+            }
+            return
+        }
+
         routeBuilder.configure(
             isPrivate: UserDefaults.standard.bool(
                 forKey: PrefsKeys.LastSessionWasPrivate
@@ -127,6 +142,10 @@ class SceneDelegate: UIResponder,
         openURLContexts URLContexts: Set<UIOpenURLContext>
     ) {
         guard let url = URLContexts.first?.url else { return }
+        if sceneCoordinator == nil {
+            TubeShell.handleIncoming(url)
+            return
+        }
         handleOpenURL(url)
     }
 
@@ -134,6 +153,10 @@ class SceneDelegate: UIResponder,
 
     /// Use this method to handle Handoff-related data or other activities.
     func scene(_ scene: UIScene, continue userActivity: NSUserActivity) {
+        if sceneCoordinator == nil {
+            if let url = userActivity.webpageURL { TubeShell.handleIncoming(url) }
+            return
+        }
         guard let route = routeBuilder.makeRoute(userActivity: userActivity) else { return }
         handle(route: route)
     }

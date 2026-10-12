@@ -321,11 +321,20 @@ extension WebExtensionManager {
             }
             if props["active"] as? Bool == true, let manager = manager(owning: tab) {
                 manager.selectTab(tab, previous: manager.selectedTab, immediatePreservation: false)
+            } else if props["active"] as? Bool == true, ShellTabRegistry.shared.contains(tab) {
+                ShellTabRegistry.shared.setActive(tab)
             }
             reply(tabInfo(tab), nil)
         case "tabs.remove":
             for value in args.first as? [Any] ?? [] {
-                if let tab = resolveTab(value, context: context), let manager = manager(owning: tab) {
+                if let tab = resolveTab(value, context: context), ShellTabRegistry.shared.contains(tab) {
+                    let id = tabID(for: tab)
+                    ShellTabRegistry.shared.closeHandler?(tab)
+                    for webExtension in enabledExtensions {
+                        broadcastEvent(to: webExtension, name: "tabs.onRemoved",
+                                       args: [id, ["windowId": 1, "isWindowClosing": false]])
+                    }
+                } else if let tab = resolveTab(value, context: context), let manager = manager(owning: tab) {
                     let id = tabID(for: tab)
                     manager.removeTab(tab.tabUUID)
                     for webExtension in enabledExtensions {
@@ -380,17 +389,18 @@ extension WebExtensionManager {
     private func queryTabs(_ query: [String: Any], context: WebExtensionCallContext) -> [Tab] {
         var tabs = allTabs()
         let currentManager = tab(for: context.webView).flatMap { manager(owning: $0) } ?? allTabManagers().first
+        let shellTabs = ShellTabRegistry.shared.tabs
         if query["currentWindow"] as? Bool == true || query["lastFocusedWindow"] as? Bool == true {
-            tabs = currentManager?.tabs ?? []
+            tabs = shellTabs.isEmpty ? (currentManager?.tabs ?? []) : shellTabs
         }
         if let windowID = query["windowId"] as? Int, windowID > 0 {
             tabs = tabs.filter { self.windowID(for: $0) == windowID }
         }
         if let active = query["active"] as? Bool {
-            tabs = tabs.filter { (manager(owning: $0)?.selectedTab === $0) == active }
+            tabs = tabs.filter { isActive($0) == active }
         }
         if let highlighted = query["highlighted"] as? Bool {
-            tabs = tabs.filter { (manager(owning: $0)?.selectedTab === $0) == highlighted }
+            tabs = tabs.filter { isActive($0) == highlighted }
         }
         if let pinned = query["pinned"] as? Bool, pinned {
             tabs = []

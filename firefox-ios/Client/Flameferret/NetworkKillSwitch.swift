@@ -19,6 +19,9 @@ final class NetworkKillSwitch: URLProtocol {
         "branch.io", "appsflyer.com", "amplitude.com", "mixpanel.com", "segment.io", "braze.com",
     ]
 
+    /// Exceptions you trigger yourself: installing an extension from addons.mozilla.org.
+    static let allowedHosts: Set<String> = ["addons.mozilla.org", "addons.cdn.mozilla.net"]
+
     private static let lock = NSLock()
     private nonisolated(unsafe) static var installed = false
     private nonisolated(unsafe) static var refused = 0
@@ -30,7 +33,7 @@ final class NetworkKillSwitch: URLProtocol {
     }
 
     static func isBlocked(host: String?) -> Bool {
-        guard let host = host?.lowercased(), !host.isEmpty else { return false }
+        guard let host = host?.lowercased(), !host.isEmpty, !allowedHosts.contains(host) else { return false }
         return blockedDomains.contains { host == $0 || host.hasSuffix("." + $0) }
     }
 

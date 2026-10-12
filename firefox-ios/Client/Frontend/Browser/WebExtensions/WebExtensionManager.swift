@@ -161,7 +161,15 @@ final class WebExtensionManager: NSObject {
     }
 
     func allTabs() -> [Tab] {
-        return allTabManagers().flatMap { $0.tabs }
+        return allTabManagers().flatMap { $0.tabs } + ShellTabRegistry.shared.tabs
+    }
+
+    /// Whether `tab` is the selected tab of its window (or the shell's active tab).
+    func isActive(_ tab: Tab) -> Bool {
+        if ShellTabRegistry.shared.contains(tab) {
+            return ShellTabRegistry.shared.activeTab === tab
+        }
+        return allTabManagers().first { $0.tabs.contains { $0 === tab } }?.selectedTab === tab
     }
 
     func tabID(for tab: Tab) -> Int {
@@ -183,7 +191,7 @@ final class WebExtensionManager: NSObject {
     }
 
     func selectedTab() -> Tab? {
-        return allTabManagers().first?.selectedTab
+        return ShellTabRegistry.shared.activeTab ?? allTabManagers().first?.selectedTab
     }
 
     func windowID(for tab: Tab) -> Int {
@@ -195,8 +203,9 @@ final class WebExtensionManager: NSObject {
     func tabInfo(_ tab: Tab) -> [String: Any] {
         let managers = allTabManagers()
         let manager = managers.first { $0.tabs.contains { $0 === tab } }
-        let index = manager?.tabs.firstIndex { $0 === tab } ?? 0
-        let isActive = manager?.selectedTab === tab
+        let index = manager?.tabs.firstIndex { $0 === tab }
+            ?? ShellTabRegistry.shared.tabs.firstIndex { $0 === tab } ?? 0
+        let isActive = isActive(tab)
         var info: [String: Any] = [
             "id": tabID(for: tab),
             "index": index,
@@ -835,6 +844,15 @@ final class WebExtensionManager: NSObject {
     }
 
     func openTab(url: URL, active: Bool, from context: WebExtensionCallContext?) -> Tab? {
+        if let openHandler = ShellTabRegistry.shared.openHandler {
+            let newTab = openHandler(url)
+            if let newTab {
+                for webExtension in enabledExtensions {
+                    broadcastEvent(to: webExtension, name: "tabs.onCreated", args: [tabInfo(newTab)])
+                }
+            }
+            return newTab
+        }
         let manager = allTabManagers().first
         let current = manager?.selectedTab
         let isPrivate = context.flatMap { tab(for: $0.webView)?.isPrivate } ?? false

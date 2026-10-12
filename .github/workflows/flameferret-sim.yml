@@ -1,0 +1,93 @@
+name: Flameferret simulator check
+
+on:
+  workflow_dispatch:
+    inputs:
+      video:
+        description: "Video ID to open for the player screenshot"
+        required: false
+        default: "aqz-KE-bpKQ"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: flameferret-sim-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sim:
+    runs-on: macos-26
+    timeout-minutes: 150
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode_26.5*.app 2>/dev/null | tail -1)
+          if [ -z "$XCODE" ]; then XCODE=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1); fi
+          sudo xcode-select -s "$XCODE/Contents/Developer"
+          xcodebuild -version
+
+      - name: Build for the simulator
+        run: |
+          ./bootstrap.sh firefox
+          python3 scripts/flameferret-embed-js.py
+          mkdir -p build
+          cd firefox-ios
+          xcodebuild -resolvePackageDependencies -project Client.xcodeproj -scheme Fennec \
+            -onlyUsePackageVersionsFromResolvedFile
+          set +e
+          xcodebuild build -project Client.xcodeproj -scheme Fennec -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath ../build/SimData -skipMacroValidation -skipPackagePluginValidation \
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO > ../build/sim-xcodebuild.log 2>&1
+          STATUS=$?
+          set -e
+          if [ $STATUS -ne 0 ]; then
+            grep -E "^/.*:[0-9]+:[0-9]+: error: " ../build/sim-xcodebuild.log | sort -u | head -40 | while IFS= read -r line; do
+              echo "::error title=compile::$(echo "$line" | sed "s|^$GITHUB_WORKSPACE/||" | cut -c1-900)"
+            done
+            exit 1
+          fi
+
+      - name: Run in the simulator and take screenshots
+        run: |
+          mkdir -p out
+          APP=$(ls -d build/SimData/Build/Products/Debug-iphonesimulator/Client.app)
+          BUNDLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+          UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in sorted(d.items(), reverse=True) if 'iOS' in k for x in v if x['name'].startswith('iPhone 1') or x['name'].startswith('iPhone 2')))")
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl install "$UDID" "$APP"
+          shot() { xcrun simctl io "$UDID" screenshot "out/$1.png"; }
+          run() { xcrun simctl terminate "$UDID" "$BUNDLE" 2>/dev/null || true; xcrun simctl launch "$UDID" "$BUNDLE" "$@"; }
+          run
+          sleep 60; shot 1-home
+          run -tab search -search "lofi hip hop"
+          sleep 35; shot 2-search
+          run -openVideo "${{ github.event.inputs.video || 'aqz-KE-bpKQ' }}"
+          sleep 50; shot 3-player
+          sleep 30; shot 4-player-later
+          run -tab settings
+          sleep 20; shot 5-settings
+          run -tab following
+          sleep 15; shot 6-following
+          xcrun simctl spawn "$UDID" log show --last 6m --predicate 'process == "Client"' --style compact 2>/dev/null \
+            | grep -v "^Filtering" | tail -400 > out/app.log || true
+          ls -la out
+
+      - name: Push screenshots to the sim branch
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p out
+          gzip -c build/sim-xcodebuild.log > out/sim-xcodebuild.log.gz 2>/dev/null || true
+          cd out
+          echo "${GITHUB_SHA}" > SOURCE_COMMIT
+          git init -q -b sim
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add -A
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "Simulator check for ${GITHUB_SHA::7}" --allow-empty
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" sim

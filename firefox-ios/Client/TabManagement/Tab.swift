@@ -575,7 +575,8 @@ class Tab: NSObject,
             webView,
             nightMode: nightMode,
             noImageMode: noImageMode,
-            backgroundAudio: featureFlagsProvider.isEnabled(.backgroundAudio)
+            backgroundAudio: (featureFlagsProvider.isEnabled(.backgroundAudio)
+                || ShellTabRegistry.shared.contains(self))
                 && BackgroundAudioHelper.isEnabled(profile.prefs)
         )
 
@@ -594,7 +595,8 @@ class Tab: NSObject,
             webView,
             nightMode: nightMode,
             noImageMode: noImageMode,
-            backgroundAudio: featureFlagsProvider.isEnabled(.backgroundAudio)
+            backgroundAudio: (featureFlagsProvider.isEnabled(.backgroundAudio)
+                || ShellTabRegistry.shared.contains(self))
                 && BackgroundAudioHelper.isEnabled(profile.prefs)
         )
     }

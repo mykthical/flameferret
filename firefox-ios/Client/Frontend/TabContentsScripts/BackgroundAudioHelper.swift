@@ -135,6 +135,7 @@ class BackgroundAudioHelper: Notifiable {
 
     private static func selectedTabWebViews() -> [WKWebView] {
         let windowManager: WindowManager = AppContainer.shared.resolve()
-        return windowManager.allWindowTabManagers().compactMap { $0.selectedTab?.webView }
+        let shellWebViews = ShellTabRegistry.shared.tabs.compactMap { $0.webView }
+        return windowManager.allWindowTabManagers().compactMap { $0.selectedTab?.webView } + shellWebViews
     }
 }
