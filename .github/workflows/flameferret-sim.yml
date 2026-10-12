@@ -75,7 +75,10 @@ jobs:
           run -tab following
           sleep 15; shot 6-following
           xcrun simctl spawn "$UDID" log show --last 6m --predicate 'process == "Client"' --style compact 2>/dev/null \
-            | grep -v "^Filtering" | tail -400 > out/app.log || true
+            | grep -v "^Filtering" | grep -v "com.apple.WebKit:ProcessSuspension\|com.apple.WebKit:Process]" \
+            | tail -1500 > out/app.log || true
+          xcrun simctl spawn "$UDID" log show --last 10m --style compact \
+            --predicate 'process == "Client" AND eventMessage CONTAINS "FFTube"' > out/fftube.log 2>/dev/null || true
           ls -la out
 
       - name: Push screenshots to the sim branch

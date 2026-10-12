@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
 import Foundation
+import UIKit
 import WebKit
 
 enum TubeError: LocalizedError {
@@ -35,6 +36,7 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
     private var webView: WKWebView?
     private var waiters: [CheckedContinuation<Void, Error>] = []
     private var usesFallbackContext = false
+    private var loadGeneration = 0
 
     static let desktopUserAgent =
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15"
@@ -47,7 +49,10 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
         let view = WKWebView(frame: CGRect(x: 0, y: 0, width: 800, height: 600), configuration: configuration)
         view.customUserAgent = Self.desktopUserAgent
         view.navigationDelegate = self
+        view.alpha = 0.01
+        view.isUserInteractionEnabled = false
         webView = view
+        attachToWindowIfNeeded()
         load()
     }
 
@@ -63,7 +68,40 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
     private func load() {
         state = .loading
         usesFallbackContext = false
+        loadGeneration += 1
+        let generation = loadGeneration
+        Self.log("loading youtube.com")
         webView?.load(URLRequest(url: URL(string: "https://www.youtube.com/feed/you")!))
+        // Don't leave screens spinning if YouTube never finishes loading the page.
+        Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 20_000_000_000)
+            guard let self, self.loadGeneration == generation, self.state == .loading,
+                  let webView = self.webView else { return }
+            Self.log("page load timed out; probing anyway")
+            await self.inspectLoadedPage(webView)
+        }
+    }
+
+    /// Web views that aren't in a window can be throttled; keep the hidden one in the key window.
+    private func attachToWindowIfNeeded() {
+        guard let webView, webView.window == nil else { return }
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
+        guard let window else {
+            Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 500_000_000)
+                self?.attachToWindowIfNeeded()
+            }
+            return
+        }
+        webView.frame = CGRect(x: 0, y: 0, width: 2, height: 2)
+        window.insertSubview(webView, at: 0)
+    }
+
+    static func log(_ message: String) {
+        NSLog("[FFTube] %@", message)
     }
 
     func waitUntilReady() async throws {
@@ -79,6 +117,7 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
     }
 
     private func finish(_ result: Result<Void, Error>) {
+        Self.log("engine finished: \(result) url=\(webView?.url?.absoluteString ?? "-") signedIn=\(isSignedIn)")
         switch result {
         case .success: state = .ready
         case .failure(let error): state = .failed(error.localizedDescription)
@@ -100,6 +139,7 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
                                                            arguments: ["endpoint": endpoint,
                                                                        "payloadJSON": payloadJSON],
                                                            contentWorld: .page)
+        Self.log("\(endpoint) -> \((result as? String)?.count ?? -1) chars")
         guard let text = result as? String, let data = text.data(using: .utf8),
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw TubeError.badResponse("YouTube sent something unexpected")
@@ -146,18 +186,30 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
     // MARK: WKNavigationDelegate
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        Self.log("didFinish \(webView.url?.absoluteString ?? "-")")
         Task { await inspectLoadedPage(webView) }
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        finish(.failure(error))
+        handleFailure(error)
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        handleFailure(error)
+    }
+
+    private func handleFailure(_ error: Error) {
+        let nsError = error as NSError
+        Self.log("navigation failed: \(nsError.domain) \(nsError.code) \(nsError.localizedDescription)")
+        // Cancelled loads are redirects or replaced navigations, not real failures.
+        if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled { return }
+        if nsError.domain == "WebKitErrorDomain" && nsError.code == 102 { return }
+        guard state == .loading else { return }
         finish(.failure(error))
     }
 
     private func inspectLoadedPage(_ webView: WKWebView) async {
+        guard state == .loading else { return }
         let host = webView.url?.host?.lowercased() ?? ""
         let probe = try? await webView.callAsyncJavaScript(Self.probeJS, contentWorld: .page) as? [String: Any]
         if let probe, probe["ready"] as? Bool == true, host.hasSuffix("youtube.com") {
