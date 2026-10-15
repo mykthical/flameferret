@@ -29,8 +29,13 @@ final class AppLockSettingsViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "Passcode & Data Protection"
         rebuild()
     }

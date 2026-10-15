@@ -30,8 +30,13 @@ final class AdGuardSettingsViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "AdGuard Ad Blocking"
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(reload),
@@ -348,8 +353,13 @@ final class AdGuardAllowlistViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "Sites Not Blocked"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add,
                                                             target: self,

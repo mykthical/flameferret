@@ -35,8 +35,13 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "NordVPN Proxy"
         configureField(usernameField, placeholder: "Service username", secure: false)
         configureField(passwordField, placeholder: "Service password", secure: true)
@@ -336,8 +341,13 @@ final class NordPlacePickerViewController: UITableViewController, UISearchResult
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = level.title
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false

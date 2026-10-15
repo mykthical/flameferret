@@ -18,6 +18,21 @@ enum FerretStyle {
     static let band = dynamic(light: navy, dark: UIColor(rgb: 0x16263F))
     static let stripe = dynamic(light: oxblood, dark: UIColor(rgb: 0xC2443A))
     static let critical = dynamic(light: oxblood, dark: UIColor(rgb: 0xE05A4F))
+    static let card = dynamic(light: .white, dark: UIColor(rgb: 0x16263F))
+
+    /// Parchment background and navy accents for Ferret's own settings tables.
+    @MainActor
+    static func styleTable(_ tableView: UITableView) {
+        tableView.backgroundColor = paper
+        tableView.tintColor = accent
+    }
+
+    @MainActor
+    static func styleCell(_ cell: UITableViewCell) {
+        cell.backgroundColor = card
+        cell.tintColor = accent
+        (cell.accessoryView as? UISwitch)?.onTintColor = accent
+    }
 
     /// A serif face (New York) at the given text style, optionally in tracked small caps for headings.
     static func serifFont(_ style: UIFont.TextStyle, weight: UIFont.Weight = .semibold) -> UIFont {
