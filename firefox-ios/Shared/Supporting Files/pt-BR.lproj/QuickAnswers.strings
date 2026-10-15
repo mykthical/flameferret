@@ -92,7 +92,7 @@
 "QuickAnswers.OptInRedesign.PrivateByDesignDescription.v158" = "Não usamos sua voz para identificar você.";
 
 /* Title of the second privacy row on the Quick Answers opt-in screen, explaining that the user's voice is not used to identify them. */
-"QuickAnswers.OptInRedesign.PrivateByDesignTitle.v158" = "Privativo por projeto";
+"QuickAnswers.OptInRedesign.PrivateByDesignTitle.v158" = "Projetado para proteger sua privacidade";
 
 /* Title displayed on the Quick Answers opt-in screen that introduces the voice feature. */
 "QuickAnswers.OptInRedesign.Title.v158" = "Experimente respostas rápidas";

@@ -97,6 +97,9 @@
 /* Title displayed on the Quick Answers opt-in screen that introduces the voice feature. */
 "QuickAnswers.OptInRedesign.Title.v158" = "Prófaðu hraðsvör";
 
+/* Body text of the privacy banner shown on the Quick Answers screen, explaining how the feature handles user data. %@ is the name of the app (e.g. Firefox). */
+"QuickAnswers.PrivacyBanner.Description.v158" = "%@ geymir ekki hljóðupptökur eða spurningar frá þér, notar ekki gögnin þín til að þjálfa gervigreindarlíkön eða notar röddina þína til að bera kennsl á þig.";
+
 /* Title of the privacy banner shown on the Quick Answers screen. */
 "QuickAnswers.PrivacyBanner.Title.v158" = "Hannað til að vernda persónuupplýsingar";
 

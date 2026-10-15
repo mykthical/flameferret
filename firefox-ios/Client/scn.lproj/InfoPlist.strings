@@ -4,17 +4,8 @@
 /* (No Comment) */
 "New Tab" = "Nova scheda";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret abbisogna dû Face ID p’accèdiri ê to chiavi e i furmi di pagamentu sarbati.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "I siti chi vìsiti ponnu addumannari a to pusizzioni.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret usa u to micròfunu pi riggistrari e carricari audiu.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Chistu ti pirmetti di sarbari i fotu.";

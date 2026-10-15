@@ -4,14 +4,8 @@
 /* (No Comment) */
 "New Tab" = "Nauja kortelė";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Svetainės gali teirautis jūsų buvimo vietos.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "„Flameferret“ naudoja jūsų mikrofoną garso įrašymui ir įkėlimui.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Tai jums leis įrašyti nuotraukas.";

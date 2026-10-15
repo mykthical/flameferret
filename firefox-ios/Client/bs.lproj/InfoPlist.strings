@@ -4,17 +4,8 @@
 /* (No Comment) */
 "New Tab" = "Novi tab";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret zahtijeva Face ID za pristup vašim sačuvanim lozinkama i načinima plaćanja.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Web stranice koje posjećujete mogu zahtjevati vašu lokaciju.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret koristi vaš mikrofon za snimanje i prijenos zvuka.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Ovo vam omogućava da sačuvate fotografije.";

@@ -4,17 +4,8 @@
 /* (No Comment) */
 "New Tab" = "Iccer amaynut";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret yesra Face ID i unekcum ɣer wawalen-ik·im uffiren d tarrayin n uxelleṣ yettwawgelhen.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Ismal web iɣer trezzuḍ zemren ad sutren adig-inek.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Ayagi ad k-isireg asader d usali n tvidyutin.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Aya ad k-yeǧǧ ad teskelseḍ tiwlafin-inek.";

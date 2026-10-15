@@ -4,14 +4,8 @@
 /* (No Comment) */
 "New Tab" = "Kanji taaga";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Interneti nungey kaŋ war g'i naaru ga hin ka war gorodogoo hãa.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Woo ga naŋ war ma widewoyaŋ zaa k'i zijandi.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Woo ga naŋ ma biyey gaabu.";

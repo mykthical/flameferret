@@ -7,23 +7,11 @@
 /* (No Comment) */
 "New Tab" = "Nový panel";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret může použít váš fotoaparát ke skenování QR kódů a pořizování fotografií a videí.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret vyžaduje Face ID pro přístup k uloženým heslům a platebním metodám.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Stránky, které navštěvujete, mohou chtít znát vaše umístění.";
 
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret používá váš mikrofon k zaznamenávání a odesílání zvuku.";
-
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Toto vám umožní ukládat fotografie.";
-
-/* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Toto umožňuje Flameferretu přepsat zvuk na text.";
 
 /* (No Comment) */
 "Scan QR Code" = "Skenovat QR kód";

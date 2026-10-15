@@ -98,7 +98,7 @@
 "QuickAnswers.OptInRedesign.Title.v158" = "Spěšne wotmołwy testować";
 
 /* Body text of the privacy banner shown on the Quick Answers screen, explaining how the feature handles user data. %@ is the name of the app (e.g. Firefox). */
-"QuickAnswers.PrivacyBanner.Description.v158" = "%@ waše awdio abo prašenja njeskładuje, wužiwajće swoje daty, zo byšće modele KI trenował abo wužiwajće swój hłós, zo byšće so identifikował.";
+"QuickAnswers.PrivacyBanner.Description.v158" = "%@ waše awdijo abo prašenja njeskładuje, wužiwajće swoje daty, zo byšće modele KI trenował abo wužiwajće swój hłós, zo byšće so identifikował.";
 
 /* Title of the privacy banner shown on the Quick Answers screen. */
 "QuickAnswers.PrivacyBanner.Title.v158" = "Priwatny po designje";

@@ -7,17 +7,8 @@
 /* (No Comment) */
 "New Tab" = "Яңа таб";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Сакланган серсүзләрегезгә һәм түләү ысулларыгызга ирешү өчен Flameferret Face ID таләп итә.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Зиярат ителгән вебсайтлар урнашуыгызны сорый ала.";
-
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret uses your microphone to record and upload audio.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Фотоларны саклау өчен сез моны куллана аласыз.";

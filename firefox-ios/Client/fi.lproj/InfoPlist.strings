@@ -7,23 +7,11 @@
 /* (No Comment) */
 "New Tab" = "Uusi välilehti";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret voi käyttää kameraasi skannatakseen QR-koodeja tai ottaakseen valokuvia ja videoita.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret vaatii Face ID:n käyttääkseen tallennettuja salasanoja ja maksutapoja.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Vierailemasi sivustot voivat kysyä lupaa sijaintiisi.";
 
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret käyttää mikrofoniasi tallentamaan ja lähettämään ääntä.";
-
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Näin voit tallentaa kuvia.";
-
-/* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Tämän avulla Flameferret voi muuntaa puheesi tekstiksi.";
 
 /* (No Comment) */
 "Scan QR Code" = "Skannaa QR-koodi";

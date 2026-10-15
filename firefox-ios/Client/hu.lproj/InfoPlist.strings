@@ -7,23 +7,11 @@
 /* (No Comment) */
 "New Tab" = "Új lap";
 
-/* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "A Flameferret használhatja a kameráját, hogy QR-kódokat olvasson le, vagy fényképeket és videókat készítsen.";
-
-/* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "A Flameferret a Face ID-t igényli a mentett jelszavak és a fizetési módok eléréséhez.";
-
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "A meglátogatott webhelyek kérhetik az Ön helyét.";
 
-/* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "A Flameferret a mikrofonját használja, hogy hangokat vegyen fel és töltsön fel.";
-
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Ezzel lementheti a képeket.";
-
-/* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Ez lehetővé teszi, hogy a Flameferret leiratozza az Ön hangját.";
 
 /* (No Comment) */
 "Scan QR Code" = "QR-kód leolvasása";
