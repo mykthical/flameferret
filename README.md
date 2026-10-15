@@ -1,9 +1,9 @@
-# Flameferret
+# Ferret
 
-**This fork is Flameferret: Firefox for iOS with browser extension support.** See
+**This fork is Ferret (formerly Flameferret): Firefox for iOS with extensions, built-in AdGuard and a PIN lock.** See
 [FLAMEFERRET.md](FLAMEFERRET.md) for what works, how to install extensions, and how to build and sideload it.
 
-<img src="branding/flameferret-icon-1024.png" width="128" alt="Flameferret icon">
+<img src="branding/ferret-icon-1024.png" width="128" alt="Ferret icon">
 
 ---
 

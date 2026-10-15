@@ -2,12 +2,13 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
-"""Regenerates Flameferret's in-app brand artwork (logos, wordmark, illustrations).
+"""Regenerates Ferret's in-app brand artwork (logos, wordmark, illustrations).
 
 Requires: pip install cairosvg fonttools pillow. Run from the repository root.
 """
 import base64
 import io
+import json
 import os
 import sys
 
@@ -47,12 +48,14 @@ def mark(color=None, eye="#FFFFFF"):
     return shapes
 
 
-LOGO_PATH = os.path.join(ROOT, "branding/flameferret-logo.png")
+LOGO_PATH = os.path.join(ROOT, "branding/ferret-logo.png")
+LOGO_DARK_PATH = os.path.join(ROOT, "branding/ferret-logo-dark.png")
+LOGO_CURRENT = [LOGO_PATH]
 
 
 def logo_data_uri(color=None):
-    """The raster logo (branding/flameferret-logo.png) as a data URI, optionally as a one-color silhouette."""
-    image = Image.open(LOGO_PATH).convert("RGBA")
+    """The raster logo (branding/ferret-logo.png) as a data URI, optionally as a one-color silhouette."""
+    image = Image.open(LOGO_CURRENT[0]).convert("RGBA")
     image.thumbnail((600, 600), Image.LANCZOS)
     if color:
         rgb = tuple(int(color.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
@@ -154,7 +157,7 @@ def main():
               asset(f"{kit}/firefoxLoader.imageset/firefoxLoader.pdf"))
 
     # Wordmark next to the home header logo (template-rendered, so drawn in black).
-    width, group = wordmark("Flameferret", 20, "#000000")
+    width, group = wordmark("Ferret", 20, "#000000")
     word_svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="26" '
                 f'viewBox="0 -1 {width} 26">{group}</svg>')
     write_pdf(word_svg, asset(f"{client}/fxHomeHeaderLogoText.imageset/fxHomeHeaderLogoText.pdf"))
@@ -168,7 +171,7 @@ def main():
         write_png(svg(134, 134, placed(10, 14, 114, 106)), asset(f"{logo_glyph}/{name}"), 134 * scale, 134 * scale)
 
     # Small favicon used for the built-in home page entry.
-    icon = os.path.join(ROOT, "branding/flameferret-icon-1024.png")
+    icon = os.path.join(ROOT, "branding/ferret-icon-1024.png")
     for folder in (f"{client}/faviconFox.imageset", "firefox-ios/WidgetKit/Assets.xcassets/faviconFox.imageset"):
         for name, size in (("back-panel-home.png", 29), ("back-panel-home@2x.png", 58), ("back-panel-home@3x.png", 87)):
             if os.path.isdir(asset(folder)):
@@ -181,7 +184,7 @@ def main():
     write_pdf(svg(148.16, 135.05, placed(30, 30, 118, 100) + check),
               asset(f"{client}/foxConfirmation.imageset/foxConfirmation.pdf"))
 
-    stars = sparkle(14, 18, 9, "#F97316") + sparkle(26, 34, 5, "#FDBA74") + sparkle(66, 14, 6, "#FB923C")
+    stars = sparkle(14, 18, 9, "#9E2B2B") + sparkle(26, 34, 5, "#0E2340") + sparkle(66, 14, 6, "#9E2B2B")
     write_pdf(svg(78, 88, placed(2, 28, 74, 56) + stars), asset(f"{client}/foxWithStars.imageset/foxWithStars.pdf"))
 
     window = ('<rect x="14" y="10" width="212" height="243" rx="22" fill="#FFF7ED" stroke="#1C1917" stroke-width="4"/>'
@@ -191,8 +194,8 @@ def main():
     write_pdf(svg(240, 263, window + placed(30, 120, 180, 110)),
               asset(f"{client}/Onboarding/Headers/onboardingFoxyWindow.imageset/buildABetterWeb.pdf"))
 
-    glow = ('<radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F97316" '
-            'stop-opacity="0.28"/><stop offset="1" stop-color="#F97316" stop-opacity="0"/></radialGradient>')
+    glow = ('<radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#0E2340" '
+            'stop-opacity="0.12"/><stop offset="1" stop-color="#0E2340" stop-opacity="0"/></radialGradient>')
     welcome = svg(171.63, 201.11, f'<defs>{glow}</defs><ellipse cx="72" cy="100" rx="80" ry="72" fill="url(#halo)"/>'
                   + placed(4, 40, 164, 120))
     write_pdf(welcome, asset(f"{kit}/onboardingWelcomeBrandRefresh.imageset/onboardingWelcomeBrandRefresh.pdf"))
@@ -213,7 +216,56 @@ def main():
              '<rect x="104" y="34" width="38" height="8" rx="4" fill="#DC2626"/>')
     write_png(svg(156, 106, phone + placed(0, 30, 96, 72)),
               asset(f"{client}/foxDefaultBrowser.imageset/Illu.png"), 468, 318)
+    write_dark_variants(client, kit)
     print("Brand assets written")
+
+
+def add_dark_appearance(imageset, light_name, dark_name, scale=None):
+    """Adds a dark-mode file next to the light one in an asset catalog image set."""
+    path = asset(f"{imageset}/Contents.json")
+    with open(path) as handle:
+        contents = json.load(handle)
+    images = [entry for entry in contents["images"] if "appearances" not in entry]
+    for entry in list(images):
+        if entry.get("filename") == light_name:
+            dark = dict(entry)
+            dark["filename"] = dark_name
+            dark["appearances"] = [{"appearance": "luminosity", "value": "dark"}]
+            images.append(dark)
+    contents["images"] = images
+    with open(path, "w") as handle:
+        json.dump(contents, handle, indent=2)
+        handle.write("\n")
+
+
+def write_dark_variants(client, kit):
+    """Dark-mode copies of the color logo artwork, drawn with the light-on-dark logo."""
+    LOGO_CURRENT[0] = LOGO_DARK_PATH
+    try:
+        ball = svg(77.42, 79.97, placed(0, 8, 77.42, 64))
+        for base in (client, kit):
+            folder = f"{base}/fxHomeHeaderLogoBall.imageset"
+            write_pdf(ball, asset(f"{folder}/fxLogo-dark.pdf"))
+            add_dark_appearance(folder, "fxLogo.pdf", "fxLogo-dark.pdf")
+        for name, scale in (("splash.png", 1), ("splash@2x.png", 2), ("splash@3x.png", 3)):
+            dark_name = name.replace("splash", "splash-dark")
+            write_png(svg(134, 134, placed(10, 14, 114, 106)), asset(f"{client}/splash.imageset/{dark_name}"),
+                      134 * scale, 134 * scale)
+            add_dark_appearance(f"{client}/splash.imageset", name, dark_name)
+        welcome = svg(171.63, 201.11, placed(4, 40, 164, 120))
+        folder = f"{kit}/onboardingWelcomeBrandRefresh.imageset"
+        write_pdf(welcome, asset(f"{folder}/onboardingWelcomeBrandRefresh-dark.pdf"))
+        add_dark_appearance(folder, "onboardingWelcomeBrandRefresh.pdf", "onboardingWelcomeBrandRefresh-dark.pdf")
+        welcome_square = svg(238, 238, placed(8, 50, 222, 140))
+        folder = f"{kit}/onboardingWelcomeJapan.imageset"
+        write_pdf(welcome_square, asset(f"{folder}/Firefox_Marco_Icons_x2-dark.pdf"))
+        add_dark_appearance(folder, "Firefox_Marco_Icons_x2.pdf", "Firefox_Marco_Icons_x2-dark.pdf")
+        stars = sparkle(14, 18, 9, "#E05A4F") + sparkle(26, 34, 5, "#EDE8DA") + sparkle(66, 14, 6, "#E05A4F")
+        folder = f"{client}/foxWithStars.imageset"
+        write_pdf(svg(78, 88, placed(2, 28, 74, 56) + stars), asset(f"{folder}/foxWithStars-dark.pdf"))
+        add_dark_appearance(folder, "foxWithStars.pdf", "foxWithStars-dark.pdf")
+    finally:
+        LOGO_CURRENT[0] = LOGO_PATH
 
 
 if __name__ == "__main__":

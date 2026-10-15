@@ -62,9 +62,9 @@ final class AppLockSettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
             return manager.isEnabled
-                ? "Flameferret asks for your PIN when it opens and hides your tabs in the app switcher. "
+                ? "Ferret asks for your PIN when it opens and hides your tabs in the app switcher. "
                     + "After 5 wrong PINs you'll have to wait before trying again."
-                : "Require a 6-digit PIN to open Flameferret."
+                : "Require a 6-digit PIN to open Ferret."
         }
         return "Encrypts history, tabs, cookies, website data, saved passwords, extensions and ad-blocking data "
             + "with a key that only exists while your iPhone is unlocked. Downloads and pages that are already "

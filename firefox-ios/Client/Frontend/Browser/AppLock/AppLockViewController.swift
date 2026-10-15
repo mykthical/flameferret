@@ -212,11 +212,11 @@ final class AppLockViewController: UIViewController {
         switch mode {
         case .unlock:
             titleLabel.text = "Enter PIN"
-            messageLabel.text = "Flameferret is locked."
+            messageLabel.text = "Ferret is locked."
         case .create:
             titleLabel.text = firstEntry == nil ? "Choose a 6-Digit PIN" : "Confirm PIN"
             messageLabel.text = firstEntry == nil
-                ? "You'll need it to open Flameferret. If you forget it, the only way back in is to reinstall the app."
+                ? "You'll need it to open Ferret. If you forget it, the only way back in is to reinstall the app."
                 : "Enter the same PIN again."
         case .verify:
             titleLabel.text = "Enter Current PIN"

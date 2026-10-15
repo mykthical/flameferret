@@ -8,8 +8,8 @@ import XCTest
 final class FlameferretBrandingTests: XCTestCase {
     func testReplacesProductName() {
         XCTAssertEqual(flameferretBranded("Make Firefox your default browser"),
-                       "Make Flameferret your default browser")
-        XCTAssertEqual(flameferretBranded("Firefox can use your camera"), "Flameferret can use your camera")
+                       "Make Ferret your default browser")
+        XCTAssertEqual(flameferretBranded("Firefox can use your camera"), "Ferret can use your camera")
     }
 
     func testKeepsOtherMozillaProducts() {

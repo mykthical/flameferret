@@ -8,22 +8,22 @@
 "New Tab" = "Новая вкладка";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret может использовать вашу камеру для сканирования QR-кодов или создания фото и видео.";
+"NSCameraUsageDescription" = "Ferret может использовать вашу камеру для сканирования QR-кодов или создания фото и видео.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret требует Face ID для доступа к вашим сохранённым логинам и зашифрованным картам.";
+"NSFaceIDUsageDescription" = "Ferret требует Face ID для доступа к вашим сохранённым логинам и зашифрованным картам.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Посещаемые вами веб-сайты могут запрашивать ваше местоположение.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret использует ваш микрофон для записи и выгрузки аудио.";
+"NSMicrophoneUsageDescription" = "Ferret использует ваш микрофон для записи и выгрузки аудио.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Это позволит вам сохранять фотографии.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Это позволяет Flameferret переводить вашу речь в текст.";
+"NSSpeechRecognitionUsageDescription" = "Это позволяет Ferret переводить вашу речь в текст.";
 
 /* (No Comment) */
 "Scan QR Code" = "Сканировать QR-код";

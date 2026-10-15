@@ -5,16 +5,16 @@
 "New Tab" = "Новая картка";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret can use your camera to scan QR codes or take photos and video.";
+"NSCameraUsageDescription" = "Ferret can use your camera to scan QR codes or take photos and video.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret патрабуе Face ID для доступу да захаваных пароляў і спосабаў аплаты.";
+"NSFaceIDUsageDescription" = "Ferret патрабуе Face ID для доступу да захаваных пароляў і спосабаў аплаты.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Вэб-сайты, якія вы наведваеце, могуць запытваць ваша месцазнаходжанне.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Flameferret выкарыстоўвае мікрафон для запісу і зацягвання аўдыя.";
+"NSMicrophoneUsageDescription" = "Ferret выкарыстоўвае мікрафон для запісу і зацягвання аўдыя.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Гэта дазваляе захоўваць фота.";

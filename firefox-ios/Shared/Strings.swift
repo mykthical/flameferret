@@ -42,12 +42,12 @@ private func MZLocalizedString(
     return flameferretBranded(localized)
 }
 
-/// Shows the Flameferret name wherever translations say "Firefox", keeping other Mozilla product names intact.
+/// Shows the Ferret name wherever translations say "Firefox", keeping other Mozilla product names intact.
 public func flameferretBranded(_ text: String) -> String {
     guard text.contains("Firefox") else { return text }
     return text.replacingOccurrences(
         of: "Firefox(?! (Relay|Focus|Klar|Monitor|Suggest|Nightly|Beta|Daylight|Accounts?\\b|account))",
-        with: "Flameferret",
+        with: "Ferret",
         options: .regularExpression
     )
 }

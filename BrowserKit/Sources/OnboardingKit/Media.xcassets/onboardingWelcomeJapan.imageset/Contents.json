@@ -1,15 +1,25 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "Firefox_Marco_Icons_x2.pdf",
-      "idiom" : "universal"
+      "filename": "Firefox_Marco_Icons_x2.pdf",
+      "idiom": "universal"
+    },
+    {
+      "filename": "Firefox_Marco_Icons_x2-dark.pdf",
+      "idiom": "universal",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "dark"
+        }
+      ]
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   },
-  "properties" : {
-    "preserves-vector-representation" : true
+  "properties": {
+    "preserves-vector-representation": true
   }
 }

@@ -665,7 +665,7 @@ extension BrowserViewController: WKNavigationDelegate {
             return
         }
 
-        if let scheme = url.scheme, !scheme.contains("firefox"), !scheme.contains("flameferret"), !shouldBlockExternalApps, !tab.isPrivate {
+        if let scheme = url.scheme, !scheme.contains("firefox"), !scheme.contains("ferret"), !shouldBlockExternalApps, !tab.isPrivate {
             handleCustomSchemeURLNavigation(url: url, navigationAction: navigationAction)
         }
 

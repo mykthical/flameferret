@@ -189,7 +189,7 @@ final class AppLockManager {
         }
         isAuthenticatingWithBiometrics = true
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                               localizedReason: "Unlock Flameferret") { success, _ in
+                               localizedReason: "Unlock Ferret") { success, _ in
             Task { @MainActor in
                 self.isAuthenticatingWithBiometrics = false
                 completion(success)

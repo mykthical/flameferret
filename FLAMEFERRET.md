@@ -1,6 +1,6 @@
-# Flameferret
+# Ferret
 
-Flameferret is a personal fork of Firefox for iOS that adds browser extension support. It installs real
+Ferret (formerly Flameferret) is a personal fork of Firefox for iOS that adds browser extension support. It installs real
 Firefox (`.xpi`) and Chrome (`.crx`) extension packages and runs them on top of WebKit.
 
 It is not affiliated with or endorsed by Mozilla. "Firefox" is a trademark of the Mozilla Foundation;
@@ -28,7 +28,7 @@ depends on `webRequest`, so use uBlock Origin Lite instead.
 
 ## Built-in ad blocking (AdGuard)
 
-Flameferret has AdGuard's filtering engine built in — the same open-source pieces AdGuard uses in its own
+Ferret has AdGuard's filtering engine built in — the same open-source pieces AdGuard uses in its own
 Safari and iOS apps — so ad blocking doesn't depend on an extension. Open **Menu → Extensions →
 AdGuard Ad Blocking** to:
 
@@ -54,19 +54,19 @@ AdGuard's libraries are licensed under GPL-3.0 (`SafariConverterLib`, `@adguard/
 
 **Settings → Privacy → Passcode & Data Protection**
 
-- **Require PIN:** a 6-digit PIN to open Flameferret, with optional Face ID or Touch ID. You choose
+- **Require PIN:** a 6-digit PIN to open Ferret, with optional Face ID or Touch ID. You choose
   whether it locks immediately or after 1, 5, 15 or 60 minutes away, and there's a *Lock Now* button.
   The lock screen covers every window and also hides your tabs in the app switcher.
 - **Wrong PINs:** after 5 wrong tries you wait 30 seconds, then 1, 5, 15 and 60 minutes for each
   further miss. The wait survives restarting the app. Data is never erased.
 - **Forgotten PIN:** there's no recovery; delete and reinstall the app (this erases its data).
-- **Protect Data While Locked** (on by default): moves everything Flameferret stores — history, tabs,
+- **Protect Data While Locked** (on by default): moves everything Ferret stores — history, tabs,
   cookies and website data, saved passwords, extensions and ad-blocking data — to iOS's strongest
   practical encryption class. Files are encrypted with a key that's discarded shortly after your iPhone
   locks, so they can't be read without your device passcode. Files already open, such as active
   downloads, keep working in the background.
 
-The PIN is never stored. Flameferret keeps a salted PBKDF2-SHA256 hash (200,000 rounds) in the
+The PIN is never stored. Ferret keeps a salted PBKDF2-SHA256 hash (200,000 rounds) in the
 Keychain, readable only on this device while it's unlocked.
 
 ## Using extensions
@@ -74,7 +74,7 @@ Keychain, readable only on this device while it's unlocked.
 - **Menu → Extensions** opens the extensions screen. Tap an extension to open its popup or settings,
   use the switch to turn it off, or swipe to remove it.
 - **Install from addons.mozilla.org:** choose *Browse Firefox Add-ons*, open an add-on, and tap
-  *Download file*. Flameferret catches the `.xpi` and asks before installing.
+  *Download file*. Ferret catches the `.xpi` and asks before installing.
 - **Install from a link:** choose *Install from Link…* and paste an addons.mozilla.org page, a Chrome
   Web Store page, or a direct `.xpi`/`.crx` link.
 - **Install from Files:** choose *Install from File…* and pick an `.xpi`, `.crx` or `.zip`.
@@ -87,9 +87,9 @@ Content scripts apply to pages loaded after installing, so reload open tabs.
 
 1. On GitHub, open this repository's **Actions** tab. Forks have Actions turned off by default, so click
    **I understand my workflows, go ahead and enable them**.
-2. Choose **Build Flameferret** → **Run workflow**. The build takes roughly 40–90 minutes.
-3. When it finishes, open the run and download the **Flameferret-ipa** artifact. Unzip it to get
-   `Flameferret.ipa`.
+2. Choose **Build Ferret** → **Run workflow**. The build takes roughly 40–90 minutes.
+3. When it finishes, open the run and download the **Ferret-ipa** artifact. Unzip it to get
+   `Ferret.ipa`.
 
 If the build fails, download the **xcodebuild-log** artifact and look for lines containing `error:`.
 
@@ -97,8 +97,8 @@ If the build fails, download the **xcodebuild-log** artifact and look for lines 
 
 Use [SideStore](https://sidestore.io), [AltStore](https://altstore.io) or Sideloadly with your Apple ID:
 
-- **SideStore / AltStore:** open the app, tap **+** under My Apps, and pick `Flameferret.ipa`.
-- **Sideloadly (Windows or Mac):** drag in `Flameferret.ipa`, enter your Apple ID and click Start.
+- **SideStore / AltStore:** open the app, tap **+** under My Apps, and pick `Ferret.ipa`.
+- **Sideloadly (Windows or Mac):** drag in `Ferret.ipa`, enter your Apple ID and click Start.
 
 With a free Apple ID the app expires after 7 days; SideStore and AltStore can refresh it
 automatically. The widget, share sheet and notification extensions are left out of the IPA because
@@ -109,18 +109,18 @@ autofill don't work in a sideloaded build either, since they need paid-account e
 
 iOS only offers an app as the default browser if it's signed with Apple's
 `com.apple.developer.web-browser` entitlement, which Apple grants on request to paid developer
-accounts. A sideloaded build can't carry it, so Flameferret won't appear under
+accounts. A sideloaded build can't carry it, so Ferret won't appear under
 Settings → Apps → Default Browser App. If you have a paid account and Apple approves the
 entitlement, sign the app with your own provisioning profile and it will appear there; the app
 already handles http/https links.
 
-Until then, open links in Flameferret with its URL scheme, for example from a Shortcut's
-*Open URLs* action: `flameferret://open-url?url=https://example.com`.
+Until then, open links in Ferret with its URL scheme, for example from a Shortcut's
+*Open URLs* action: `ferret://open-url?url=https://example.com`.
 
 ### Building on a Mac instead
 
 ```shell
-./scripts/flameferret-build-ipa.sh       # writes build/flameferret/Flameferret.ipa
+./scripts/flameferret-build-ipa.sh       # writes build/flameferret/Ferret.ipa
 ```
 
 Or open `firefox-ios/Client.xcodeproj`, choose the **Fennec** scheme, set your own team under
@@ -145,7 +145,8 @@ if Xcode says it's taken.
 - Debug extension pages and content scripts with Safari's Web Inspector (Settings → Safari → Advanced →
   Web Inspector on the phone, then Develop menu on a Mac); background pages show up as separate pages.
 
-Brand artwork lives in `branding/`: the app icon (`flameferret-icon.svg`), its iOS 26 Liquid Glass
-layers (`glass-layers/`), and `tools/make_brand_assets.py`, which regenerates the in-app logos,
-wordmark and illustrations. Interface text says "Flameferret" wherever translations say "Firefox"
+Brand artwork lives in `branding/`: the app icon in light and dark (`ferret-icon.svg`,
+`ferret-icon-dark.svg`), the globe logo (`ferret-logo.png`, `ferret-logo-dark.png`), and
+`tools/make_brand_assets.py`, which regenerates the in-app logos, wordmark and illustrations with
+dark-mode variants. Interface text says "Ferret" wherever translations say "Firefox"
 (see `flameferretBranded` in `firefox-ios/Shared/Strings.swift`).

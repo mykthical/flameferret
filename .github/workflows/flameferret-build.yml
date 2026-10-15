@@ -1,4 +1,4 @@
-name: Build Flameferret
+name: Build Ferret
 
 on:
   workflow_dispatch: {}
@@ -54,28 +54,28 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Flameferret-ipa
-          path: build/flameferret/Flameferret.ipa
+          name: Ferret-ipa
+          path: build/flameferret/Ferret.ipa
           retention-days: 30
 
       - name: Publish IPA to the ipa-builds branch
         run: |
           cd build/flameferret
-          SIZE=$(stat -f%z Flameferret.ipa)
+          SIZE=$(stat -f%z Ferret.ipa)
           echo "::notice title=IPA size::$((SIZE / 1048576)) MB"
           mkdir publish && cd publish
           if [ "$SIZE" -lt 99000000 ]; then
-            cp ../Flameferret.ipa Flameferret.ipa
+            cp ../Ferret.ipa Ferret.ipa
           else
-            split -b 45m ../Flameferret.ipa Flameferret.ipa.part-
+            split -b 45m ../Ferret.ipa Ferret.ipa.part-
           fi
-          shasum -a 256 ../Flameferret.ipa | cut -d' ' -f1 > Flameferret.ipa.sha256
+          shasum -a 256 ../Ferret.ipa | cut -d' ' -f1 > Ferret.ipa.sha256
           echo "${GITHUB_SHA}" > SOURCE_COMMIT
           git init -q -b ipa-builds
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
-          git commit -q -m "Flameferret IPA from ${GITHUB_SHA::7}"
+          git commit -q -m "Ferret IPA from ${GITHUB_SHA::7}"
           git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipa-builds
 
       - name: Publish release
@@ -83,9 +83,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "flameferret-${GITHUB_SHA::7}" build/flameferret/Flameferret.ipa \
+          gh release create "flameferret-${GITHUB_SHA::7}" build/flameferret/Ferret.ipa \
             --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest \
-            --title "Flameferret (${GITHUB_SHA::7})" \
+            --title "Ferret (${GITHUB_SHA::7})" \
             --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. See FLAMEFERRET.md."
 
       - name: Upload build log
