@@ -237,6 +237,7 @@ class ContentBlocker: Notifiable {
             add(contentRuleList: rule, toTab: tab)
         }
         WebExtensionManager.shared.reapplyRuleLists(to: tab.currentWebView())
+        AdGuardManager.shared.reapplyRuleLists(to: tab.currentWebView())
     }
 
     private func add(contentRuleList: WKContentRuleList, toTab tab: ContentBlockerTab) {

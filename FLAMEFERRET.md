@@ -26,6 +26,30 @@ Good candidates: uBlock Origin Lite, Dark Reader, SponsorBlock, Return YouTube D
 managers, translation and dictionary popups, simple page tweakers. Full uBlock Origin (not Lite)
 depends on `webRequest`, so use uBlock Origin Lite instead.
 
+## Built-in ad blocking (AdGuard)
+
+Flameferret has AdGuard's filtering engine built in — the same open-source pieces AdGuard uses in its own
+Safari and iOS apps — so ad blocking doesn't depend on an extension. Open **Menu → Extensions →
+AdGuard Ad Blocking** to:
+
+- turn blocking on or off, and update filter lists (they also update automatically once a day);
+- choose filter lists: AdGuard Base, Mobile Ads, Tracking Protection, Social Media, Cookie Notices,
+  Popups, Mobile App Banners, Other Annoyances and Widgets, or add any list by URL;
+- turn blocking off for the site you're on, or manage the list of sites that aren't blocked;
+- write your own rules in AdGuard syntax.
+
+How it works: network and simple element-hiding rules are compiled into WebKit content blockers.
+Scriptlets, script rules and Extended CSS (`#?#`, `#%#`, `#$#`) are looked up per page with AdGuard's
+`FilterEngine`. For the main page they're installed before the page starts loading, so scriptlets run
+ahead of the site's own code and aren't affected by its Content Security Policy; frames get theirs as
+soon as they start. A few rule types have no WebKit equivalent and are skipped — mainly `$redirect`,
+`$removeparam`, `$csp`, `$replace`, header changes and HTML filtering — which is the same limit every
+Safari ad blocker has.
+
+AdGuard's libraries are licensed under GPL-3.0 (`SafariConverterLib`, `@adguard/safari-extension`,
+`@adguard/scriptlets`, `@adguard/extended-css`). The JavaScript bundles are built from
+`firefox-ios/AdGuardJS` with `./scripts/flameferret-build-adguard-js.sh`.
+
 ## Using extensions
 
 - **Menu → Extensions** opens the extensions screen. Tap an extension to open its popup or settings,
@@ -95,6 +119,8 @@ if Xcode says it's taken.
 - The JavaScript `browser`/`chrome` runtime lives in `firefox-ios/WebExtensionsJS/webextension-api.js`.
   After editing it, run `python3 scripts/flameferret-embed-js.py` to regenerate
   `WebExtensionAPISource.swift`.
+- AdGuard integration: `firefox-ios/Client/Frontend/Browser/AdGuard/` (`AdGuardManager.swift` applies
+  rules to tabs, `AdGuardCompiler.swift` converts filter lists).
 - Unit tests: `firefox-ios/firefox-ios-tests/Tests/ClientTests/WebExtensions/`.
 - Debug extension pages and content scripts with Safari's Web Inspector (Settings → Safari → Advanced →
   Web Inspector on the phone, then Develop menu on a Mac); background pages show up as separate pages.

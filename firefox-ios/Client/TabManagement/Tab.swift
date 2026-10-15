@@ -661,6 +661,9 @@ class Tab: NSObject,
 
         webView?.stopLoading()
 
+        if let webView {
+            AdGuardManager.shared.webViewWillClose(webView)
+        }
         contentScriptManager.uninstall(tab: self)
         webView?.removeAllUserScripts()
 

@@ -725,6 +725,7 @@
 		5A96FB5F2D96DAA300917B12 /* TabTraySelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A96FB5E2D96DA9700917B12 /* TabTraySelectorView.swift */; };
 		5A984D342C8A31C6007938C9 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 5A984D332C8A31C6007938C9 /* Kingfisher */; };
 		5A984D362C8A3407007938C9 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 5A984D352C8A3407007938C9 /* Kingfisher */; };
+		FF1A5E7E00000000000000B3 /* ContentBlockerConverter in Frameworks */ = {isa = PBXBuildFile; productRef = FF1A5E7E00000000000000B2 /* ContentBlockerConverter */; };
 		5A9A09D428B01D8700B6F51E /* MockTelemetryWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9A09D328B01D8700B6F51E /* MockTelemetryWrapper.swift */; };
 		5A9A09D628B01FD500B6F51E /* MockURLBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9A09D528B01FD500B6F51E /* MockURLBarView.swift */; };
 		5A9F83402B2B4AE800272819 /* TabPeekAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A9F833F2B2B4AE800272819 /* TabPeekAction.swift */; };
@@ -12625,6 +12626,7 @@
 		ED85DD2C2DE669FF00487807 /* probes */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = probes; sourceTree = "<group>"; };
 		FC16179A00000000000000A1 /* WebCompat */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebCompat; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A2 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
+		FF1A5E7E00000000000000A3 /* AdGuard */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AdGuard; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A1 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -12719,6 +12721,7 @@
 				FEEDFACE000000000000FC01 /* VPNKit in Frameworks */,
 				EDD5924A2FC1090C0015EF9E /* ModifiedCopy in Frameworks */,
 				5A984D362C8A3407007938C9 /* Kingfisher in Frameworks */,
+				FF1A5E7E00000000000000B3 /* ContentBlockerConverter in Frameworks */,
 				819656172C80C6F300E62323 /* MenuKit in Frameworks */,
 				8CC185F72FF6A0D1004A124F /* WebCompatReporterKit in Frameworks */,
 				5A871488292EA1440039A5BD /* Fuzi in Frameworks */,
@@ -16933,6 +16936,7 @@
 				034784BA2E2690F600D04A84 /* TermsOfUse */,
 				FC16179A00000000000000A1 /* WebCompat */,
 				FF1A5E7E00000000000000A1 /* WebExtensions */,
+				FF1A5E7E00000000000000A3 /* AdGuard */,
 				81A3F6EE2C2DAED500BDD86B /* MainMenu */,
 				1D7B78952ADF324E0011E9F2 /* Event Queue */,
 				8A1E3BE428CBBF1E003388C4 /* SearchEngines */,
@@ -18665,6 +18669,7 @@
 				ED85DD2C2DE669FF00487807 /* probes */,
 				FC16179A00000000000000A1 /* WebCompat */,
 				FF1A5E7E00000000000000A1 /* WebExtensions */,
+				FF1A5E7E00000000000000A3 /* AdGuard */,
 			);
 			name = Client;
 			packageProductDependencies = (
@@ -18680,6 +18685,7 @@
 				E177989F2BD8043800F6F0EB /* ToolbarKit */,
 				5A984D352C8A3407007938C9 /* Kingfisher */,
 				819656162C80C6F300E62323 /* MenuKit */,
+				FF1A5E7E00000000000000B2 /* ContentBlockerConverter */,
 				8CC185F62FF6A0D1004A124F /* WebCompatReporterKit */,
 				EDD2A7F72CDACE7C00ED464C /* UnifiedSearchKit */,
 				ED6C8DAB2CE6A4BB00D7F7F3 /* Sentry-Dynamic */,
@@ -19032,6 +19038,7 @@
 				5A37861729A2C337006B3A34 /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				AB2AC6612BCFD0A200022AAB /* XCRemoteSwiftPackageReference "swift-certificates" */,
 				5A984D322C8A31A0007938C9 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				FF1A5E7E00000000000000B1 /* XCRemoteSwiftPackageReference "SafariConverterLib" */,
 				EDD592482FC1090C0015EF9E /* XCRemoteSwiftPackageReference "ModifiedCopyMacro" */,
 			);
 			productRefGroup = F84B21BF1A090F8100AAB793 /* Products */;
@@ -33719,6 +33726,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		FF1A5E7E00000000000000B1 /* XCRemoteSwiftPackageReference "SafariConverterLib" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AdguardTeam/SafariConverterLib.git";
+			requirement = {
+				kind = exactVersion;
+				version = 4.3.1;
+			};
+		};
 		433F87CC2788EAB600693368 /* XCRemoteSwiftPackageReference "GCDWebServer" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/nbhasin2/GCDWebServer.git";
@@ -33796,6 +33811,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		FF1A5E7E00000000000000B2 /* ContentBlockerConverter */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FF1A5E7E00000000000000B1 /* XCRemoteSwiftPackageReference "SafariConverterLib" */;
+			productName = ContentBlockerConverter;
+		};
 		0B6D1C872E15456F00919F1E /* SummarizeKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SummarizeKit;

@@ -1,0 +1,16 @@
+{
+  "name": "flameferret-adguard-js",
+  "private": true,
+  "description": "Builds the AdGuard content-script and scriptlet bundles embedded in Flameferret.",
+  "license": "GPL-3.0",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@adguard/safari-extension": "4.3.1",
+    "@adguard/scriptlets": "2.3.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.10"
+  }
+}

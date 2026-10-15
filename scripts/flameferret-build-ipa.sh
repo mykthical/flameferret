@@ -21,10 +21,12 @@ python3 scripts/flameferret-embed-js.py
 
 mkdir -p "$ROOT/build"
 cd firefox-ios
+# Pins live in Package.resolved; resolving without -onlyUsePackageVersionsFromResolvedFile lets
+# Xcode refresh the file's origin hash after Flameferret's added packages.
 xcodebuild -resolvePackageDependencies \
     -project Client.xcodeproj \
     -scheme Fennec \
-    -onlyUsePackageVersionsFromResolvedFile
+    -skipPackagePluginValidation
 
 set +e
 xcodebuild build \
