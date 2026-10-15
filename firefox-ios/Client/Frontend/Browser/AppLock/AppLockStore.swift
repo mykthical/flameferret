@@ -14,7 +14,11 @@ protocol AppLockSecretStore: AnyObject {
 
 /// Keychain items that never leave this device and are readable only while it's unlocked.
 final class KeychainAppLockSecretStore: AppLockSecretStore {
-    private let service = "com.mykthical.flameferret.applock"
+    private let service: String
+
+    init(service: String = "com.mykthical.flameferret.applock") {
+        self.service = service
+    }
 
     func data(for key: String) -> Data? {
         let query: [String: Any] = [

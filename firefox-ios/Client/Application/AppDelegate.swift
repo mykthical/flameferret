@@ -129,6 +129,7 @@ class AppDelegate: UIResponder,
         fixSimulatorDevBuild(application)
 
         DataProtectionManager.apply()
+        NordProxyManager.shared.start()
 
         pushNotificationSetup()
         appLaunchUtil?.setUpPostLaunchDependencies()

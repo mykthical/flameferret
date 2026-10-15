@@ -431,6 +431,7 @@ class AppSettingsTableViewController: SettingsTableViewController,
         privacySettings.append(ClearPrivateDataSetting(settings: self, settingsDelegate: parentCoordinator))
 
         privacySettings.append(AppLockSetting(theme: currentTheme()))
+        privacySettings.append(NordProxySetting(theme: currentTheme()))
 
         if let profile {
             privacySettings.append(

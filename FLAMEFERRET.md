@@ -69,6 +69,21 @@ AdGuard's libraries are licensed under GPL-3.0 (`SafariConverterLib`, `@adguard/
 The PIN is never stored. Ferret keeps a salted PBKDF2-SHA256 hash (200,000 rounds) in the
 Keychain, readable only on this device while it's unlocked.
 
+## NordVPN proxy (Ferret only, no system VPN)
+
+Settings → Privacy → **NordVPN Proxy** sends Ferret's tabs (normal and private) and extension pages
+through NordVPN's encrypted HTTPS proxy servers, the same ones the NordVPN browser extension uses on desktop.
+The rest of your iPhone keeps its normal connection. Requires iOS 17 or later and a NordVPN subscription.
+
+1. Get your **service credentials** at my.nordaccount.com → NordVPN → Set up NordVPN manually →
+   Service credentials. They are not your NordVPN email and password.
+2. Paste them into Ferret, turn the proxy on, and pick a location (or leave it on Fastest Available).
+3. Tap **Check Connection** to confirm NordVPN sees the traffic as protected.
+
+When the proxy is on but can't be used (missing credentials, no server yet), pages don't load rather than
+going out directly. Credentials are kept in the Keychain on this device only. Ferret's own background
+requests (search suggestions, ad-block filter updates, favicons, Sync) still use the normal connection.
+
 ## Using extensions
 
 - **Menu → Extensions** opens the extensions screen. Tap an extension to open its popup or settings,
