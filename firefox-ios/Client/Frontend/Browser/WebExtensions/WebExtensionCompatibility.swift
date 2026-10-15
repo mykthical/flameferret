@@ -110,6 +110,22 @@ enum WebExtensionCompatibility {
                       optionalPermissions: file["optional_permissions"] as? [String] ?? [])
     }
 
+    /// Reads an extension's own manifest.json, before it's installed.
+    static func assess(manifest json: [String: Any]) -> Report {
+        let runsCode = json["background"] != nil || json["content_scripts"] != nil || json["action"] != nil
+            || json["browser_action"] != nil
+        if json["theme"] != nil && !runsCode {
+            return Report(verdict: .unsupportedType, notes: [typeNote("statictheme")])
+        }
+        let strings = { (key: String) in (json[key] as? [Any] ?? []).compactMap { $0 as? String } }
+        let report = assess(type: "extension",
+                            permissions: strings("permissions"),
+                            optionalPermissions: strings("optional_permissions"))
+        guard json["devtools_page"] != nil else { return report }
+        let notes = report.notes + ["Its developer tools panel won't appear."]
+        return Report(verdict: report.verdict == .works ? .partial : report.verdict, notes: notes)
+    }
+
     /// Drops host patterns ("<all_urls>", "https://*/*"), which Ferret honors, leaving API permissions.
     static func apiPermissions(_ permissions: [String]) -> [String] {
         return unique(permissions.filter { !$0.contains("://") && $0 != "<all_urls>" && !$0.isEmpty })

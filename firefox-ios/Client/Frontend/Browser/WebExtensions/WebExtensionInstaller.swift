@@ -131,33 +131,76 @@ final class WebExtensionInstaller {
             showError(error, presenter: presenter)
             return
         }
-        let permissions = describePermissions(manifest)
-        let message = "Version \(manifest.version)\n\n" + (permissions.isEmpty
-            ? "This extension doesn't request any special permissions."
-            : "It will be able to:\n• " + permissions.joined(separator: "\n• "))
-        let alert = UIAlertController(title: "Add \(displayName(manifest))?", message: message, preferredStyle: .alert)
+        let confirmation = Self.confirmation(for: manifest,
+                                             compatibility: WebExtensionCompatibility.assess(manifest: manifest.raw),
+                                             permissions: describePermissions(manifest))
+        let alert = UIAlertController(title: confirmation.title, message: confirmation.message, preferredStyle: .alert)
+        guard let addTitle = confirmation.addTitle else {
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+            present(alert, fallback: presenter)
+            return
+        }
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.addAction(UIAlertAction(title: "Add", style: .default) { _ in
-            do {
-                let installed = try WebExtensionManager.shared.install(packageData: data, suggestedName: suggestedName)
-                let done = UIAlertController(title: "\(installed.displayName) was added",
-                                             message: "Reload open pages to use it there. Manage it from Menu → Extensions.",
-                                             preferredStyle: .alert)
-                done.addAction(UIAlertAction(title: "OK", style: .default))
-                self.present(done, fallback: presenter)
-            } catch {
-                self.showError(error, presenter: presenter)
-            }
+        alert.addAction(UIAlertAction(title: addTitle, style: confirmation.isRisky ? .destructive : .default) { _ in
+            self.install(data, suggestedName: suggestedName, presenter: presenter)
         })
         present(alert, fallback: presenter)
     }
 
-    private func present(_ controller: UIViewController, fallback: UIViewController?) {
-        (WebExtensionManager.shared.topViewController() ?? fallback)?.present(controller, animated: true)
+    private func install(_ data: Data, suggestedName: String?, presenter: UIViewController?) {
+        do {
+            let installed = try WebExtensionManager.shared.install(packageData: data, suggestedName: suggestedName)
+            let done = UIAlertController(title: "\(installed.displayName) was added",
+                                         message: "Reload open pages to use it there. Manage it from Menu → Extensions.",
+                                         preferredStyle: .alert)
+            done.addAction(UIAlertAction(title: "OK", style: .default))
+            present(done, fallback: presenter)
+        } catch {
+            showError(error, presenter: presenter)
+        }
     }
 
-    private func displayName(_ manifest: WebExtensionManifest) -> String {
-        return manifest.name.hasPrefix("__MSG_") ? "this extension" : manifest.name
+    /// What the install prompt says. `addTitle` is nil when the add-on can't be installed at all.
+    struct Confirmation: Equatable {
+        let title: String
+        let message: String
+        let addTitle: String?
+        let isRisky: Bool
+    }
+
+    nonisolated static func confirmation(for manifest: WebExtensionManifest,
+                                         compatibility: WebExtensionCompatibility.Report,
+                                         permissions: [String]) -> Confirmation {
+        let name = manifest.name.hasPrefix("__MSG_") ? "this extension" : manifest.name
+        let reasons = compatibility.notes.map { "• " + $0 }.joined(separator: "\n")
+        let access = permissions.isEmpty
+            ? "It doesn't request any special permissions."
+            : "It will be able to:\n• " + permissions.joined(separator: "\n• ")
+        let version = "Version \(manifest.version)"
+        switch compatibility.verdict {
+        case .works:
+            return Confirmation(title: "Add \(name)?",
+                                message: "\(version) · Works in Ferret\n\n\(access)",
+                                addTitle: "Add",
+                                isRisky: false)
+        case .partial:
+            return Confirmation(title: "Add \(name)?",
+                                message: "\(version) · Partly works in Ferret\n\(reasons)\n\n\(access)",
+                                addTitle: "Add",
+                                isRisky: false)
+        case .incompatible:
+            return Confirmation(title: "\(manifest.name.hasPrefix("__MSG_") ? "This extension" : name) won't work in Ferret",
+                                message: "\(reasons)\n\nYou can still add it, but it probably won't do what you "
+                                    + "expect.\n\n\(access)",
+                                addTitle: "Add Anyway",
+                                isRisky: true)
+        case .unsupportedType:
+            return Confirmation(title: "Not available in Ferret", message: reasons, addTitle: nil, isRisky: false)
+        }
+    }
+
+    private func present(_ controller: UIViewController, fallback: UIViewController?) {
+        (WebExtensionManager.shared.topViewController() ?? fallback)?.present(controller, animated: true)
     }
 
     func describePermissions(_ manifest: WebExtensionManifest) -> [String] {

@@ -64,6 +64,38 @@ final class WebExtensionCompatibilityTests: XCTestCase {
         XCTAssertEqual(WebExtensionCompatibility.assess(amoAddon: flat).verdict, .works)
     }
 
+    func testManifestChecksDevtoolsAndThemes() throws {
+        let devtools: [String: Any] = ["name": "Inspector", "permissions": ["storage"], "devtools_page": "d.html"]
+        XCTAssertEqual(WebExtensionCompatibility.assess(manifest: devtools).verdict, .partial)
+        let theme: [String: Any] = ["name": "Blue", "theme": ["colors": [:]]]
+        XCTAssertEqual(WebExtensionCompatibility.assess(manifest: theme).verdict, .unsupportedType)
+        let blocker: [String: Any] = ["name": "Blocker", "permissions": ["webRequest", "webRequestBlocking", "<all_urls>"]]
+        XCTAssertEqual(WebExtensionCompatibility.assess(manifest: blocker).verdict, .incompatible)
+    }
+
+    func testInstallPromptWarnsBeforeAddingIncompatibleExtensions() throws {
+        let manifest = try WebExtensionManifest(json: ["name": "uBlock Origin", "version": "1.60",
+                                                       "permissions": ["webRequestBlocking"]])
+        let report = WebExtensionCompatibility.assess(manifest: manifest.raw)
+        let prompt = WebExtensionInstaller.confirmation(for: manifest, compatibility: report, permissions: [])
+        XCTAssertEqual(prompt.title, "uBlock Origin won't work in Ferret")
+        XCTAssertEqual(prompt.addTitle, "Add Anyway")
+        XCTAssertTrue(prompt.isRisky)
+        XCTAssertTrue(prompt.message.contains("AdGuard"))
+    }
+
+    func testInstallPromptForWorkingAndUnavailableAddOns() throws {
+        let manifest = try WebExtensionManifest(json: ["name": "Notes", "version": "2.0", "permissions": ["storage"]])
+        let report = WebExtensionCompatibility.assess(manifest: manifest.raw)
+        let works = WebExtensionInstaller.confirmation(for: manifest, compatibility: report, permissions: [])
+        XCTAssertEqual(works.title, "Add Notes?")
+        XCTAssertTrue(works.message.contains("Works in Ferret"))
+        XCTAssertFalse(works.isRisky)
+        let theme = WebExtensionCompatibility.Report(verdict: .unsupportedType,
+                                                     notes: ["Themes aren't supported in Ferret."])
+        XCTAssertNil(WebExtensionInstaller.confirmation(for: manifest, compatibility: theme, permissions: []).addTitle)
+    }
+
     func testOnlyTheStoreGetsVerdicts() {
         XCTAssertTrue(WebExtensionStoreLabels.isStoreHost("addons.mozilla.org"))
         XCTAssertFalse(WebExtensionStoreLabels.isStoreHost("addons.mozilla.org.evil.com"))
