@@ -42,8 +42,13 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "Extensions"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
                                                             target: self,
@@ -101,8 +106,8 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard Section(rawValue: section) == .add else { return nil }
         return "Tap an extension to use its button, open its settings or remove it. "
-            + "Extensions run on WebKit, so add-ons that need full request interception or Firefox-only "
-            + "internals may not work fully."
+            + "Add-ons on addons.mozilla.org are labelled with how well they work in Ferret, and you'll be "
+            + "warned before installing one that won't."
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -153,7 +158,7 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     }
 
     private func configureAddCell(_ cell: UITableViewCell, row: AddRow?) {
-        cell.textLabel?.textColor = .systemBlue
+        cell.textLabel?.textColor = FerretStyle.accent
         switch row {
         case .fromFile:
             cell.textLabel?.text = "Install from File…"
