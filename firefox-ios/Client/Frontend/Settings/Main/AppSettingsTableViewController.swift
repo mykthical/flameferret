@@ -389,6 +389,8 @@ class AppSettingsTableViewController: SettingsTableViewController,
             )
         }
 
+        generalSettings.append(FerretThemeSetting(theme: currentTheme()))
+
         // For users whose devices support alternate app icons, add the App Icon setting
         if UIApplication.shared.supportsAlternateIcons {
             generalSettings.append(

@@ -85,7 +85,8 @@ final class AppLockViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack)
 
-        logoView.image = UIImage(named: "fxHomeHeaderLogoBall")
+        logoView.image = UIImage(named: "fxHomeHeaderLogoBall")?.withRenderingMode(.alwaysTemplate)
+        logoView.tintColor = FerretStyle.ink
         logoView.contentMode = .scaleAspectFit
         logoView.isAccessibilityElement = false
         NSLayoutConstraint.activate([
@@ -188,7 +189,7 @@ final class AppLockViewController: UIViewController {
         let label = UILabel()
         label.attributedText = FerretStyle.letterhead("Authorized access only",
                                                       font: FerretStyle.serifFont(.caption1),
-                                                      color: FerretStyle.parchment)
+                                                      color: FerretStyle.onBand)
         label.textAlignment = .center
         footer.backgroundColor = FerretStyle.band
         [footer, stripe, label].forEach {

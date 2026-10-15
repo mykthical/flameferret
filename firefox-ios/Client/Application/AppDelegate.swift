@@ -70,6 +70,7 @@ class AppDelegate: UIResponder,
         willFinishLaunchingWithOptions
         launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        FerretThemeStore.load()
         shareTelemetry.recordOpenDeeplinkTime()
         // Configure app information for BrowserKit, needed for logger
         BrowserKitInformation.shared.configure(buildChannel: AppConstants.buildChannel,

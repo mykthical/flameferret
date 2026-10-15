@@ -86,6 +86,18 @@ When the proxy is on but can't be used (missing credentials, no server yet), pag
 going out directly. Credentials are kept in the Keychain on this device only. Ferret's own background
 requests (search suggestions, ad-block filter updates, favicons, Sync) still use the normal connection.
 
+## Icons and color themes
+
+Settings → General → **Color Theme** restyles the whole app (light and dark mode, private browsing,
+Ferret's own screens) in one of six themes: **Classic**, **Sunflower** (inspired by Ukraine: flag blue
+with sunflower yellow), **Midnight Gold**, **Oxblood**, **Field Green** and **Monochrome**. Picking a theme
+also switches the home screen icon to match, unless you turn that off. Settings → General → **App Icon**
+lets you choose any of the six icons on its own.
+
+The icons are drawn by `branding/tools/icons/` (`python3 variants.py` writes light, dark and tinted
+versions) and the theme colors come from `branding/tools/make_theme_palettes.py`, which builds each
+theme's color scales from the Classic theme's lightness steps so contrast stays the same.
+
 ## Using extensions
 
 - **Menu → Extensions** opens the extensions screen. Tap an extension to open its popup or settings,

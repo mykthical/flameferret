@@ -138,7 +138,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
 
         logoImage.image = isNovaPrivate
             ? UIImage(named: StandardImageIdentifiers.ExtraExtraExtraLarge.privateModeCircleFillMulticolor)
-            : UIImage(imageLiteralResourceName: ImageIdentifiers.homeHeaderLogoBall)
+            : UIImage(imageLiteralResourceName: ImageIdentifiers.homeHeaderLogoBall).withRenderingMode(.alwaysTemplate)
 
         quickAnswersButton.isHidden = !headerState.showQuickAnswersButton
 
@@ -244,6 +244,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
     func applyTheme(theme: Theme) {
         self.theme = theme
         logoTextImage.tintColor = logoTextColor ?? theme.colors.textPrimary
+        logoImage.tintColor = logoTextColor ?? theme.colors.textPrimary
 
         updateQuickAnswersButton()
     }

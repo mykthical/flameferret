@@ -6,19 +6,24 @@ import Common
 import UIKit
 
 /// Colors and type for Ferret's own screens (lock screen, AdGuard and extension settings),
-/// matching the navy, parchment and oxblood of the app icon.
+/// following the selected `FerretTheme` (navy, parchment and oxblood in Classic).
 enum FerretStyle {
-    static let navy = UIColor(rgb: 0x0E2340)
-    static let parchment = UIColor(rgb: 0xF4F1E8)
-    static let oxblood = UIColor(rgb: 0x9E2B2B)
+    private static var style: FerretPalette.Style { FerretThemeStore.palette.style }
 
-    static let accent = dynamic(light: UIColor(rgb: 0x1A365C), dark: UIColor(rgb: 0x93AEDA))
-    static let ink = dynamic(light: navy, dark: UIColor(rgb: 0xEDE8DA))
-    static let paper = dynamic(light: parchment, dark: UIColor(rgb: 0x0B1626))
-    static let band = dynamic(light: navy, dark: UIColor(rgb: 0x16263F))
-    static let stripe = dynamic(light: oxblood, dark: UIColor(rgb: 0xC2443A))
-    static let critical = dynamic(light: oxblood, dark: UIColor(rgb: 0xE05A4F))
-    static let card = dynamic(light: .white, dark: UIColor(rgb: 0x16263F))
+    /// Light-appearance colors of the current theme (navy, parchment and oxblood in Classic).
+    static var navy: UIColor { style.bandLight }
+    static var parchment: UIColor { style.paperLight }
+    static var oxblood: UIColor { style.stripeLight }
+
+    static var accent: UIColor { dynamic { $0.accentLight } dark: { $0.accentDark } }
+    static var ink: UIColor { dynamic { $0.inkLight } dark: { $0.inkDark } }
+    static var paper: UIColor { dynamic { $0.paperLight } dark: { $0.paperDark } }
+    static var band: UIColor { dynamic { $0.bandLight } dark: { $0.bandDark } }
+    static var stripe: UIColor { dynamic { $0.stripeLight } dark: { $0.stripeDark } }
+    static var critical: UIColor { dynamic(light: UIColor(rgb: 0x9E2B2B), dark: UIColor(rgb: 0xE05A4F)) }
+    static var card: UIColor { dynamic { _ in .white } dark: { $0.cardDark } }
+    /// Text drawn on `band`.
+    static var onBand: UIColor { dynamic { $0.paperLight } dark: { $0.inkDark } }
 
     /// Parchment background and navy accents for Ferret's own settings tables.
     @MainActor
@@ -50,5 +55,14 @@ enum FerretStyle {
 
     private static func dynamic(light: UIColor, dark: UIColor) -> UIColor {
         return UIColor { $0.userInterfaceStyle == .dark ? dark : light }
+    }
+
+    /// A color that follows both the appearance and the selected theme at the moment it's drawn.
+    private static func dynamic(_ light: @escaping @Sendable (FerretPalette.Style) -> UIColor,
+                                dark: @escaping @Sendable (FerretPalette.Style) -> UIColor) -> UIColor {
+        return UIColor { traits in
+            let style = FerretThemeStore.palette.style
+            return traits.userInterfaceStyle == .dark ? dark(style) : light(style)
+        }
     }
 }

@@ -30,7 +30,7 @@ final class AppIconSelectionTelemetryTests: XCTestCase {
         typealias EventExtrasType = GleanMetrics.SettingsAppIcon.SelectedExtra
 
         let subject = createSubject()
-        let expectedNewAppIcon = AppIcon.darkPurple
+        let expectedNewAppIcon = AppIcon.sunflower
         let expectedOldAppIcon = AppIcon.regular
 
         subject.selectedIcon(expectedNewAppIcon, previousIcon: expectedOldAppIcon)
