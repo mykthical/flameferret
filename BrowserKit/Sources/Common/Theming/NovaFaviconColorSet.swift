@@ -37,13 +37,13 @@ public struct NovaFaviconColorSet: FaviconLetterColorSet {
     public let iconAccentYellow6 = NovaColors.Yellow60
     public let iconAccentYellow7 = NovaColors.Yellow70
 
-    public let iconAccentOrange1 = NovaColors.Orange10
-    public let iconAccentOrange2 = NovaColors.Orange20
-    public let iconAccentOrange3 = NovaColors.Orange30
-    public let iconAccentOrange4 = NovaColors.Orange40
-    public let iconAccentOrange5 = NovaColors.Orange50
-    public let iconAccentOrange6 = NovaColors.Orange60
-    public let iconAccentOrange7 = NovaColors.Orange70
+    public let iconAccentOrange1 = NovaColors.Brass10
+    public let iconAccentOrange2 = NovaColors.Brass20
+    public let iconAccentOrange3 = NovaColors.Brass30
+    public let iconAccentOrange4 = NovaColors.Brass40
+    public let iconAccentOrange5 = NovaColors.Brass50
+    public let iconAccentOrange6 = NovaColors.Brass60
+    public let iconAccentOrange7 = NovaColors.Brass70
 
     public let iconAccentRed1 = NovaColors.Red10
     public let iconAccentRed2 = NovaColors.Red20
@@ -80,7 +80,7 @@ public struct NovaFaviconColorSet: FaviconLetterColorSet {
     public var backgroundColors: [UIColor] { families.flatMap { $0 } }
     public var letterColors: [UIColor] {
         families.flatMap { family in
-            family.indices.map { $0 < 4 ? NovaColors.VioletDesaturated90 : NovaColors.VioletDesaturated0 }
+            family.indices.map { $0 < 4 ? NovaColors.Slate90 : NovaColors.Slate0 }
         }
     }
 

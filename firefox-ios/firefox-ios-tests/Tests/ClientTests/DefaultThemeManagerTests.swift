@@ -283,7 +283,7 @@ final class DefaultThemeManagerTests: XCTestCase {
         sut.setPrivateTheme(isOn: true, for: windowUUID)
 
         XCTAssertTrue(sut.getCurrentTheme(for: windowUUID) is NovaPrivateTheme)
-        XCTAssertEqual(sut.getCurrentTheme(for: windowUUID).colors.layer1, NovaColors.VioletDesaturated90)
+        XCTAssertEqual(sut.getCurrentTheme(for: windowUUID).colors.layer1, NovaColors.Slate90)
     }
 
     func testDTM_novaDesignOff_returnsLegacyLightThemeForLightMode() {

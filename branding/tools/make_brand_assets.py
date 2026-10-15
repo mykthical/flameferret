@@ -18,7 +18,7 @@ from fontTools.ttLib import TTFont
 from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FONT = os.environ.get("FLAMEFERRET_FONT", "/usr/share/fonts/truetype/google-fonts/Poppins-Bold.ttf")
+FONT = os.environ.get("FLAMEFERRET_FONT", "/usr/share/texmf/fonts/opentype/public/tex-gyre/texgyrepagella-bold.otf")
 
 TAIL = "M360 640 C300 650 240 640 200 600 C150 550 140 470 168 400 C176 450 196 480 222 495 C200 440 205 370 245 300 C250 360 268 400 298 425 C290 370 305 300 350 245 C350 320 372 370 405 405 C430 440 440 500 430 560 C425 600 400 630 360 640 Z"
 CORE = "M362 620 C320 625 275 610 252 575 C230 540 232 495 250 460 C262 500 285 520 310 528 C298 485 305 430 340 385 C345 430 362 465 388 485 C410 515 412 560 400 590 C392 610 380 618 362 620 Z"
@@ -89,7 +89,7 @@ def svg(w, h, body):
             f"<defs>{DEFS}</defs>{body}</svg>")
 
 
-def wordmark_path(text, height):
+def wordmark_path(text, height, tracking=0.0):
     font = TTFont(FONT)
     glyphs = font.getGlyphSet()
     cmap = font.getBestCmap()
@@ -102,15 +102,17 @@ def wordmark_path(text, height):
         pen = SVGPathPen(glyphs)
         glyphs[name].draw(pen)
         paths.append(f'<path transform="translate({x} 0)" d="{pen.getCommands()}"/>')
-        x += glyphs[name].width
+        x += glyphs[name].width + tracking * units
     cap = font["OS/2"].sCapHeight or int(units * 0.7)
     descent = 0
     scale = height / cap
+    if text:
+        x -= tracking * units
     return paths, x * scale, scale, cap
 
 
-def wordmark(text, height, color):
-    paths, width, scale, cap = wordmark_path(text, height)
+def wordmark(text, height, color, tracking=0.0):
+    paths, width, scale, cap = wordmark_path(text, height, tracking)
     width = round(width + 1, 2)
     group = f'<g fill="{color}" transform="translate(0 {height}) scale({scale:.6f} {-scale:.6f})">{"".join(paths)}</g>'
     return width, group
@@ -157,7 +159,7 @@ def main():
               asset(f"{kit}/firefoxLoader.imageset/firefoxLoader.pdf"))
 
     # Wordmark next to the home header logo (template-rendered, so drawn in black).
-    width, group = wordmark("Ferret", 20, "#000000")
+    width, group = wordmark("FERRET", 20, "#000000", tracking=0.12)
     word_svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="26" '
                 f'viewBox="0 -1 {width} 26">{group}</svg>')
     write_pdf(word_svg, asset(f"{client}/fxHomeHeaderLogoText.imageset/fxHomeHeaderLogoText.pdf"))

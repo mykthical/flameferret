@@ -82,7 +82,7 @@ final class AppLockSettingsViewController: UITableViewController {
             cell.selectionStyle = .none
         case .changePIN:
             cell.textLabel?.text = "Change PIN"
-            cell.textLabel?.textColor = .systemOrange
+            cell.textLabel?.textColor = FerretStyle.accent
         case .biometrics(let name):
             cell.textLabel?.text = "Unlock with \(name)"
             cell.accessoryView = makeSwitch(isOn: manager.usesBiometrics,
@@ -95,7 +95,7 @@ final class AppLockSettingsViewController: UITableViewController {
             cell.accessoryType = .disclosureIndicator
         case .lockNow:
             cell.textLabel?.text = "Lock Now"
-            cell.textLabel?.textColor = .systemOrange
+            cell.textLabel?.textColor = FerretStyle.accent
         case .dataProtection:
             cell.textLabel?.text = "Protect Data While Locked"
             cell.accessoryView = makeSwitch(isOn: DataProtectionManager.isEnabled,

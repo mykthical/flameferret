@@ -19,7 +19,7 @@ final class FaviconLetterColorSetTests: XCTestCase {
         let palette = NovaFaviconColorSet()
 
         for (index, letter) in palette.letterColors.enumerated() {
-            let expected = (index % 7) < 4 ? NovaColors.VioletDesaturated90 : NovaColors.VioletDesaturated0
+            let expected = (index % 7) < 4 ? NovaColors.Slate90 : NovaColors.Slate0
             XCTAssertEqual(letter, expected, "letter at index \(index)")
         }
     }

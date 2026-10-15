@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import Common
 import UIKit
 
 /// The PIN pad used to unlock Flameferret, set a new PIN, and confirm the PIN before changing settings.
@@ -25,7 +26,10 @@ final class AppLockViewController: UIViewController {
 
     private let stack = UIStackView()
     private let logoView = UIImageView()
+    private let wordmarkLabel = UILabel()
     private let titleLabel = UILabel()
+    private let footer = UIView()
+    private var dots: [UIView] = []
     private let messageLabel = UILabel()
     private let dotsStack = UIStackView()
     private let keypad = UIStackView()
@@ -53,8 +57,10 @@ final class AppLockViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = FerretStyle.paper
+        view.tintColor = FerretStyle.accent
         buildLayout()
+        buildFooter()
         resetForStep()
         updateKeypadVisibility()
     }
@@ -87,13 +93,20 @@ final class AppLockViewController: UIViewController {
             logoView.heightAnchor.constraint(equalToConstant: 72)
         ])
 
-        titleLabel.font = .preferredFont(forTextStyle: .title3)
+        wordmarkLabel.attributedText = FerretStyle.letterhead("Ferret",
+                                                              font: FerretStyle.serifFont(.title2, weight: .bold),
+                                                              color: FerretStyle.ink,
+                                                              tracking: 5)
+        wordmarkLabel.isAccessibilityElement = false
+
+        titleLabel.font = FerretStyle.serifFont(.headline)
+        titleLabel.textColor = FerretStyle.ink
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.textAlignment = .center
 
         messageLabel.font = .preferredFont(forTextStyle: .footnote)
         messageLabel.adjustsFontForContentSizeCategory = true
-        messageLabel.textColor = .secondaryLabel
+        messageLabel.textColor = FerretStyle.ink.withAlphaComponent(0.7)
         messageLabel.textAlignment = .center
         messageLabel.numberOfLines = 0
 
@@ -104,7 +117,7 @@ final class AppLockViewController: UIViewController {
             dot.translatesAutoresizingMaskIntoConstraints = false
             dot.layer.cornerRadius = 7
             dot.layer.borderWidth = 1.5
-            dot.layer.borderColor = UIColor.label.cgColor
+            dots.append(dot)
             NSLayoutConstraint.activate([
                 dot.widthAnchor.constraint(equalToConstant: 14),
                 dot.heightAnchor.constraint(equalToConstant: 14)
@@ -112,6 +125,7 @@ final class AppLockViewController: UIViewController {
             dotsStack.addArrangedSubview(dot)
         }
         dotsStack.isAccessibilityElement = true
+        applyDotBorders()
 
         keypad.axis = .vertical
         keypad.spacing = 14
@@ -127,6 +141,9 @@ final class AppLockViewController: UIViewController {
         }
 
         stack.addArrangedSubview(logoView)
+        stack.setCustomSpacing(10, after: logoView)
+        stack.addArrangedSubview(wordmarkLabel)
+        stack.setCustomSpacing(28, after: wordmarkLabel)
         stack.addArrangedSubview(titleLabel)
         stack.addArrangedSubview(dotsStack)
         stack.addArrangedSubview(messageLabel)
@@ -154,6 +171,44 @@ final class AppLockViewController: UIViewController {
         }
     }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        applyDotBorders()
+    }
+
+    private func applyDotBorders() {
+        let color = FerretStyle.ink.resolvedColor(with: traitCollection).cgColor
+        dots.forEach { $0.layer.borderColor = color }
+    }
+
+    /// The navy band with an oxblood rule along the bottom edge, as on the app icon.
+    private func buildFooter() {
+        let stripe = UIView()
+        stripe.backgroundColor = FerretStyle.stripe
+        let label = UILabel()
+        label.attributedText = FerretStyle.letterhead("Authorized access only",
+                                                      font: FerretStyle.serifFont(.caption1),
+                                                      color: FerretStyle.parchment)
+        label.textAlignment = .center
+        footer.backgroundColor = FerretStyle.band
+        [footer, stripe, label].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview($0)
+        }
+        NSLayoutConstraint.activate([
+            footer.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            footer.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            footer.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            footer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -40),
+            stripe.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            stripe.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            stripe.bottomAnchor.constraint(equalTo: footer.topAnchor, constant: -3),
+            stripe.heightAnchor.constraint(equalToConstant: 3),
+            label.centerXAnchor.constraint(equalTo: footer.centerXAnchor),
+            label.topAnchor.constraint(equalTo: footer.topAnchor, constant: 12)
+        ])
+    }
+
     private func makeKey(_ key: String) -> UIButton {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -162,7 +217,7 @@ final class AppLockViewController: UIViewController {
             button.heightAnchor.constraint(equalToConstant: 76)
         ])
         button.layer.cornerRadius = 38
-        button.tintColor = .label
+        button.tintColor = FerretStyle.ink
         switch key {
         case "del":
             button.setImage(UIImage(systemName: "delete.left"), for: .normal)
@@ -178,8 +233,9 @@ final class AppLockViewController: UIViewController {
             biometricButton = button
         default:
             button.setTitle(key, for: .normal)
-            button.titleLabel?.font = .systemFont(ofSize: 32, weight: .regular)
-            button.backgroundColor = .secondarySystemFill
+            button.titleLabel?.font = FerretStyle.serifFont(.largeTitle, weight: .regular)
+            button.setTitleColor(FerretStyle.ink, for: .normal)
+            button.backgroundColor = FerretStyle.ink.withAlphaComponent(0.07)
             button.accessibilityLabel = key
             button.addTarget(self, action: #selector(digitTapped(_:)), for: .touchUpInside)
             keypadButtons.append(button)
@@ -208,7 +264,7 @@ final class AppLockViewController: UIViewController {
 
     private func resetForStep() {
         entered = ""
-        messageLabel.textColor = .secondaryLabel
+        messageLabel.textColor = FerretStyle.ink.withAlphaComponent(0.7)
         switch mode {
         case .unlock:
             titleLabel.text = "Enter PIN"
@@ -227,7 +283,7 @@ final class AppLockViewController: UIViewController {
 
     private func updateDots() {
         for (index, dot) in dotsStack.arrangedSubviews.enumerated() {
-            dot.backgroundColor = index < entered.count ? .label : .clear
+            dot.backgroundColor = index < entered.count ? FerretStyle.ink : .clear
         }
         dotsStack.accessibilityLabel = "\(entered.count) of \(AppLockStore.pinLength) digits entered"
     }
@@ -313,7 +369,7 @@ final class AppLockViewController: UIViewController {
 
     private func showError(_ message: String) {
         messageLabel.text = message
-        messageLabel.textColor = .systemRed
+        messageLabel.textColor = FerretStyle.critical
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         let shake = CAKeyframeAnimation(keyPath: "transform.translation.x")
         shake.values = [-12, 12, -8, 8, -4, 4, 0]
@@ -341,13 +397,13 @@ final class AppLockViewController: UIViewController {
         guard let until = lockoutUntil else { return }
         let seconds = Int(until.timeIntervalSinceNow.rounded(.up))
         guard seconds > 0 else {
-            messageLabel.textColor = .secondaryLabel
+            messageLabel.textColor = FerretStyle.ink.withAlphaComponent(0.7)
             messageLabel.text = "Enter your PIN."
             refreshLockout()
             return
         }
         let wait = seconds >= 60 ? "\(Int((Double(seconds) / 60).rounded(.up))) min" : "\(seconds) sec"
-        messageLabel.textColor = .systemRed
+        messageLabel.textColor = FerretStyle.critical
         messageLabel.text = "Too many wrong PINs. Try again in \(wait)."
     }
 }

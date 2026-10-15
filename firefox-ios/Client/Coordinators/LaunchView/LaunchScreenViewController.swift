@@ -31,7 +31,7 @@ class LaunchScreenViewController: UIViewController, LaunchFinishedLoadingDelegat
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = FerretStyle.paper
         startLoading()
     }
 

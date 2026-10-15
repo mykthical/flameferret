@@ -147,13 +147,13 @@ final class AdGuardSettingsViewController: UITableViewController {
                 cell.selectionStyle = .none
             } else {
                 cell.textLabel?.text = manager.isUpdating ? "Updating…" : "Update Filters Now"
-                cell.textLabel?.textColor = manager.isUpdating ? .secondaryLabel : .systemOrange
+                cell.textLabel?.textColor = manager.isUpdating ? .secondaryLabel : FerretStyle.accent
             }
         case .currentSite:
             let host = currentHost ?? ""
             let allowed = settings.allowlist.contains(host)
             cell.textLabel?.text = allowed ? "Turn Blocking Back On for \(host)" : "Don't Block on \(host)"
-            cell.textLabel?.textColor = .systemOrange
+            cell.textLabel?.textColor = FerretStyle.accent
             cell.detailTextLabel?.text = "Reload the page afterwards."
         case .ads, .privacy, .annoyances:
             let filter = filters(in: section)[indexPath.row]
@@ -164,7 +164,7 @@ final class AdGuardSettingsViewController: UITableViewController {
                 configureFilterCell(cell, filter: filter, tag: indexPath.section * 1000 + indexPath.row)
             } else {
                 cell.textLabel?.text = "Add Filter List…"
-                cell.textLabel?.textColor = .systemOrange
+                cell.textLabel?.textColor = FerretStyle.accent
             }
         case .advanced:
             if indexPath.row == 0 {
