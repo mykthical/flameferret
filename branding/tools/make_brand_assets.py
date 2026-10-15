@@ -6,6 +6,7 @@
 
 Requires: pip install cairosvg fonttools pillow. Run from the repository root.
 """
+import base64
 import io
 import os
 import sys
@@ -46,8 +47,31 @@ def mark(color=None, eye="#FFFFFF"):
     return shapes
 
 
+LOGO_PATH = os.path.join(ROOT, "branding/flameferret-logo.png")
+
+
+def logo_data_uri(color=None):
+    """The raster logo (branding/flameferret-logo.png) as a data URI, optionally as a one-color silhouette."""
+    image = Image.open(LOGO_PATH).convert("RGBA")
+    image.thumbnail((600, 600), Image.LANCZOS)
+    if color:
+        rgb = tuple(int(color.lstrip("#")[i:i + 2], 16) for i in (0, 2, 4))
+        silhouette = Image.new("RGBA", image.size, rgb + (255,))
+        silhouette.putalpha(image.getchannel("A"))
+        image = silhouette
+    buffer = io.BytesIO()
+    image.save(buffer, "PNG")
+    return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
+
+
 def placed(x, y, w, h, color=None, eye="#FFFFFF", flip=False):
-    """The mark fitted into the box (x, y, w, h)."""
+    """The logo fitted into the box (x, y, w, h); falls back to the vector ferret mark."""
+    if os.path.exists(LOGO_PATH):
+        side = min(w, h)
+        ox = x + (w - side) / 2
+        oy = y + (h - side) / 2
+        return (f'<image x="{ox:.2f}" y="{oy:.2f}" width="{side:.2f}" height="{side:.2f}" '
+                f'href="{logo_data_uri(color)}"/>')
     bx, by, bw, bh = MARK_BOX
     scale = min(w / bw, h / bh)
     ox = x + (w - bw * scale) / 2
