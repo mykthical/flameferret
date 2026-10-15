@@ -98,6 +98,14 @@ requests (search suggestions, ad-block filter updates, favicons, Sync) still use
 
 Content scripts apply to pages loaded after installing, so reload open tabs.
 
+### Compatibility labels on addons.mozilla.org
+
+When you browse addons.mozilla.org in Ferret, every add-on gets a label: **Works in Ferret**, **Partly works
+in Ferret**, **Won't work in Ferret**, or **Not available in Ferret** (themes, dictionaries, language packs).
+Each add-on's page also shows the reasons, such as "Its right-click menu items won't appear". The verdict comes
+from the permissions the store lists for the add-on, compared with what Ferret's extension engine supports,
+so treat it as a strong hint rather than a guarantee.
+
 ## Getting the app onto your iPhone
 
 ### 1. Build the IPA (no Mac needed)

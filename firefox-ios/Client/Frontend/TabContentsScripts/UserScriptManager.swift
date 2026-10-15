@@ -161,5 +161,6 @@ class UserScriptManager {
         }
         WebExtensionManager.shared.injectExtensions(into: webView)
         AdGuardManager.shared.inject(into: webView)
+        WebExtensionStoreLabels.shared.inject(into: webView)
     }
 }
