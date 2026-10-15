@@ -14,6 +14,19 @@ final class NordProxyTests: XCTestCase {
      {"hostname":"evil.example.com","load":1}]
     """
 
+    private let proxyServersJSON = """
+    [{"hostname":"us1.nordvpn.com","load":30,"status":"online","locations":[{"country":{"id":228,
+      "subdivision":{"id":84,"name":"Texas"},"city":{"id":9080300,"name":"Dallas"}}}]},
+     {"hostname":"us2.nordvpn.com","load":5,"status":"online","locations":[{"country":{"id":228,
+      "subdivision":{"id":73,"name":"New York"},"city":{"id":8971718,"name":"New York"}}}]},
+     {"hostname":"us3.nordvpn.com","load":12,"status":"online","locations":[{"country":{"id":228,
+      "subdivision":{"id":84,"name":"Texas"},"city":{"id":9080300,"name":"Dallas"}}}]},
+     {"hostname":"us4.nordvpn.com","load":1,"status":"maintenance","locations":[{"country":{"id":228,
+      "subdivision":{"id":84,"name":"Texas"},"city":{"id":9080300,"name":"Dallas"}}}]},
+     {"hostname":"de1.nordvpn.com","load":1,"status":"online","locations":[{"country":{"id":81,
+      "city":{"id":2,"name":"Berlin"}}}]}]
+    """
+
     private func makeStore() -> NordProxyStore {
         let defaults = UserDefaults(suiteName: "NordProxyTests-\(UUID().uuidString)")!
         return NordProxyStore(defaults: defaults, secrets: InMemoryAppLockSecretStore())
@@ -38,22 +51,40 @@ final class NordProxyTests: XCTestCase {
         XCTAssertFalse(NordProxyCatalog.isNordHostname("a.b.nordvpn.com"))
     }
 
-    func testRecommendationsURLAsksForHTTPSProxies() {
-        let fastest = NordProxyCatalog.recommendationsURL(countryID: nil).absoluteString
-        XCTAssertTrue(fastest.contains("identifier%5D=proxy_ssl"))
-        XCTAssertFalse(fastest.contains("country_id"))
-        XCTAssertTrue(NordProxyCatalog.recommendationsURL(countryID: 228).absoluteString
-            .hasSuffix("filters%5Bcountry_id%5D=228"))
+    func testURLsAskForHTTPSProxies() {
+        XCTAssertTrue(NordProxyCatalog.recommendationsURL.absoluteString.contains("identifier%5D=proxy_ssl"))
+        let country = NordProxyCatalog.serversURL(countryID: 228).absoluteString
+        XCTAssertTrue(country.contains("identifier%5D=proxy_ssl"))
+        XCTAssertTrue(country.contains("filters%5Bcountry_id%5D=228"))
+    }
+
+    func testCountryServersKeepOnlyOnlineServersInThatCountry() async throws {
+        let servers = try await catalog(["/servers?": proxyServersJSON]).proxyServers(countryID: 228)
+        XCTAssertEqual(servers.map(\.hostname), ["us1.nordvpn.com", "us2.nordvpn.com", "us3.nordvpn.com"])
+        XCTAssertEqual(servers.first?.region, NordPlace(id: 84, name: "Texas"))
+        XCTAssertEqual(servers.first?.city, NordPlace(id: 9080300, name: "Dallas"))
+    }
+
+    func testRegionsCitiesAndBestServer() async throws {
+        let servers = try await catalog(["/servers?": proxyServersJSON]).proxyServers(countryID: 228)
+        XCTAssertEqual(NordProxyCatalog.regions(in: servers).map(\.name), ["New York", "Texas"])
+        XCTAssertEqual(NordProxyCatalog.cities(in: servers, regionID: 84).map(\.name), ["Dallas"])
+        XCTAssertEqual(NordProxyCatalog.cities(in: servers, regionID: nil).count, 2)
+        XCTAssertEqual(NordProxyCatalog.bestServer(in: servers, regionID: nil, cityID: nil)?.hostname,
+                       "us2.nordvpn.com")
+        XCTAssertEqual(NordProxyCatalog.bestServer(in: servers, regionID: 84, cityID: 9080300)?.hostname,
+                       "us3.nordvpn.com")
+        XCTAssertNil(NordProxyCatalog.bestServer(in: servers, regionID: 73, cityID: 9080300))
     }
 
     func testPicksLeastLoadedNordServer() async throws {
-        let server = try await catalog(["recommendations": serversJSON]).recommendedServer(countryID: 228)
+        let server = try await catalog(["recommendations": serversJSON]).recommendedServer()
         XCTAssertEqual(server.hostname, "us99.nordvpn.com")
     }
 
     func testNoServersIsAnError() async {
         do {
-            _ = try await catalog(["recommendations": "[]"]).recommendedServer(countryID: nil)
+            _ = try await catalog(["recommendations": "[]"]).recommendedServer()
             XCTFail("Expected noServers")
         } catch {
             XCTAssertTrue(error is NordProxyCatalogError)
@@ -95,21 +126,39 @@ final class NordProxyTests: XCTestCase {
         XCTAssertFalse(store.hasCredentials)
     }
 
-    func testCountryIsRemembered() {
+    func testLocationIsRememberedAndNarrowerChoicesReset() {
         let store = makeStore()
-        XCTAssertNil(store.country)
-        store.country = (81, "Germany")
+        XCTAssertEqual(store.locationSummary, "Fastest Available")
+        store.country = NordPlace(id: 228, name: "United States")
+        store.region = NordPlace(id: 84, name: "Texas")
+        store.city = NordPlace(id: 9080300, name: "Dallas")
+        XCTAssertEqual(store.locationSummary, "Dallas, Texas, United States")
+        store.region = NordPlace(id: 73, name: "New York")
+        XCTAssertNil(store.city)
+        store.country = NordPlace(id: 81, name: "Germany")
+        XCTAssertNil(store.region)
         XCTAssertEqual(store.country?.id, 81)
-        XCTAssertEqual(store.country?.name, "Germany")
-        store.country = nil
-        XCTAssertNil(store.country)
     }
 
     @MainActor
-    func testChoosingACountryPicksAServer() async throws {
+    func testChoosingALocationPicksAServerThere() async throws {
+        let manager = NordProxyManager(store: makeStore(), catalog: catalog(["/servers?": proxyServersJSON]))
+        try await manager.setCountry(NordPlace(id: 228, name: "United States"))
+        XCTAssertEqual(manager.store.hostname, "us2.nordvpn.com")
+        let regions = try await manager.loadRegions()
+        XCTAssertEqual(regions.map(\.name), ["New York", "Texas"])
+        try await manager.setRegion(NordPlace(id: 84, name: "Texas"))
+        XCTAssertEqual(manager.store.hostname, "us3.nordvpn.com")
+        let cities = try await manager.loadCities()
+        XCTAssertEqual(cities.map(\.name), ["Dallas"])
+        try await manager.setCity(NordPlace(id: 9080300, name: "Dallas"))
+        XCTAssertEqual(manager.store.hostname, "us3.nordvpn.com")
+    }
+
+    @MainActor
+    func testFastestAvailableUsesRecommendations() async throws {
         let manager = NordProxyManager(store: makeStore(), catalog: catalog(["recommendations": serversJSON]))
-        try await manager.setCountry(NordCountry(id: 228, name: "United States", code: "US"))
-        XCTAssertEqual(manager.store.country?.id, 228)
+        try await manager.setCountry(nil)
         XCTAssertEqual(manager.store.hostname, "us99.nordvpn.com")
     }
 

@@ -77,7 +77,9 @@ The rest of your iPhone keeps its normal connection. Requires iOS 17 or later an
 
 1. Get your **service credentials** at my.nordaccount.com → NordVPN → Set up NordVPN manually →
    Service credentials. They are not your NordVPN email and password.
-2. Paste them into Ferret, turn the proxy on, and pick a location (or leave it on Fastest Available).
+2. Paste them into Ferret, turn the proxy on, and pick a country (or leave it on Fastest Available).
+   After choosing a country you can narrow it to a region (state or province) and a city. Only places
+   where NordVPN has proxy servers are listed, and Ferret uses the least busy server there.
 3. Tap **Check Connection** to confirm NordVPN sees the traffic as protected.
 
 When the proxy is on but can't be used (missing credentials, no server yet), pages don't load rather than

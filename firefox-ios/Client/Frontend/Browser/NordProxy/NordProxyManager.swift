@@ -22,7 +22,8 @@ final class NordProxyManager {
     let store: NordProxyStore
     private let catalog: NordProxyCatalog
     private let insightsFetch: (@Sendable (NordProxyRoute) async throws -> Data)?
-    private(set) var countries: [NordCountry] = []
+    private var countries: [NordPlace] = []
+    private var serversByCountry: [Int: [NordProxyServer]] = [:]
 
     init(store: NordProxyStore = NordProxyStore(),
          catalog: NordProxyCatalog = NordProxyCatalog(),
@@ -52,8 +53,22 @@ final class NordProxyManager {
         }
     }
 
-    func setCountry(_ country: NordCountry?) async throws {
-        store.country = country.map { ($0.id, $0.name) }
+    func setCountry(_ country: NordPlace?) async throws {
+        store.country = country
+        try await locationChanged()
+    }
+
+    func setRegion(_ region: NordPlace?) async throws {
+        store.region = region
+        try await locationChanged()
+    }
+
+    func setCity(_ city: NordPlace?) async throws {
+        store.city = city
+        try await locationChanged()
+    }
+
+    private func locationChanged() async throws {
         store.hostname = nil
         applyEverywhere()
         try await refreshServer()
@@ -65,18 +80,45 @@ final class NordProxyManager {
         applyEverywhere()
     }
 
-    /// Picks the least-loaded server for the chosen location.
+    /// Picks the least-loaded server for the chosen country, region and city.
     func refreshServer() async throws {
-        let server = try await catalog.recommendedServer(countryID: store.country?.id)
-        store.hostname = server.hostname
+        guard let country = store.country else {
+            store.hostname = try await catalog.recommendedServer().hostname
+            applyEverywhere()
+            return
+        }
+        let servers = try await proxyServers(countryID: country.id, reload: true)
+        guard let best = NordProxyCatalog.bestServer(in: servers, regionID: store.region?.id, cityID: store.city?.id)
+        else { throw NordProxyCatalogError.noServers }
+        store.hostname = best.hostname
         applyEverywhere()
     }
 
-    func loadCountries() async throws -> [NordCountry] {
+    func loadCountries() async throws -> [NordPlace] {
         if countries.isEmpty {
-            countries = try await catalog.countries()
+            countries = try await catalog.countries().map { NordPlace(id: $0.id, name: $0.name) }
         }
         return countries
+    }
+
+    /// Regions in the chosen country that have proxy servers.
+    func loadRegions() async throws -> [NordPlace] {
+        guard let country = store.country else { return [] }
+        return NordProxyCatalog.regions(in: try await proxyServers(countryID: country.id))
+    }
+
+    /// Cities in the chosen country, and region if one is set, that have proxy servers.
+    func loadCities() async throws -> [NordPlace] {
+        guard let country = store.country else { return [] }
+        let servers = try await proxyServers(countryID: country.id)
+        return NordProxyCatalog.cities(in: servers, regionID: store.region?.id)
+    }
+
+    private func proxyServers(countryID: Int, reload: Bool = false) async throws -> [NordProxyServer] {
+        if !reload, let cached = serversByCountry[countryID] { return cached }
+        let servers = try await catalog.proxyServers(countryID: countryID)
+        serversByCountry[countryID] = servers
+        return servers
     }
 
     /// Asks NordVPN, through the current route, which IP the traffic arrives from.

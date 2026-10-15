@@ -18,8 +18,9 @@ enum NordProxyRoute: Equatable {
 final class NordProxyStore {
     private enum Key {
         static let enabled = "ferret.nordproxy.enabled"
-        static let countryID = "ferret.nordproxy.countryID"
-        static let countryName = "ferret.nordproxy.countryName"
+        static let country = "ferret.nordproxy.country"
+        static let region = "ferret.nordproxy.region"
+        static let city = "ferret.nordproxy.city"
         static let hostname = "ferret.nordproxy.hostname"
         static let username = "nordproxy.username"
         static let password = "nordproxy.password"
@@ -39,17 +40,34 @@ final class NordProxyStore {
         set { defaults.set(newValue, forKey: Key.enabled) }
     }
 
-    /// The chosen country, or nil for "Fastest available".
-    var country: (id: Int, name: String)? {
-        get {
-            guard let name = defaults.string(forKey: Key.countryName), defaults.object(forKey: Key.countryID) != nil
-            else { return nil }
-            return (defaults.integer(forKey: Key.countryID), name)
-        }
+    /// The chosen country, or nil for "Fastest Available". Changing it clears the region and city.
+    var country: NordPlace? {
+        get { place(for: Key.country) }
         set {
-            defaults.set(newValue?.id, forKey: Key.countryID)
-            defaults.set(newValue?.name, forKey: Key.countryName)
+            setPlace(newValue, for: Key.country)
+            region = nil
         }
+    }
+
+    /// The chosen state or province within the country, or nil for any. Changing it clears the city.
+    var region: NordPlace? {
+        get { place(for: Key.region) }
+        set {
+            setPlace(newValue, for: Key.region)
+            city = nil
+        }
+    }
+
+    /// The chosen city, or nil for any.
+    var city: NordPlace? {
+        get { place(for: Key.city) }
+        set { setPlace(newValue, for: Key.city) }
+    }
+
+    /// The most specific location chosen, for display.
+    var locationSummary: String {
+        let parts = [city?.name, region?.name, country?.name].compactMap { $0 }
+        return parts.isEmpty ? "Fastest Available" : parts.joined(separator: ", ")
     }
 
     var hostname: String? {
@@ -80,6 +98,14 @@ final class NordProxyStore {
     func clearCredentials() {
         secrets.set(nil, for: Key.username)
         secrets.set(nil, for: Key.password)
+    }
+
+    private func place(for key: String) -> NordPlace? {
+        return defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(NordPlace.self, from: $0) }
+    }
+
+    private func setPlace(_ place: NordPlace?, for key: String) {
+        defaults.set(place.flatMap { try? JSONEncoder().encode($0) }, forKey: key)
     }
 
     private func string(for key: String) -> String {

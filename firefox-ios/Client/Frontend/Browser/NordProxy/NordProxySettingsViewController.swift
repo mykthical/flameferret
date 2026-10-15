@@ -12,7 +12,9 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         case toggle
         case username
         case password
-        case location
+        case country
+        case region
+        case city
         case server
         case switchServer
         case check
@@ -59,7 +61,8 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         sections = [[.toggle]]
         if NordProxyManager.isSupported {
             sections.append([.username, .password])
-            sections.append([.location, .server, .switchServer])
+            let location: [Row] = manager.store.country == nil ? [.country] : [.country, .region, .city]
+            sections.append(location + [.server, .switchServer])
             sections.append([.check])
         }
         tableView.reloadData()
@@ -88,8 +91,8 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
             return "These are not your NordVPN email and password. Find them at my.nordaccount.com → NordVPN → "
                 + "Set up NordVPN manually → Service credentials."
         case 2:
-            return "Ferret uses NordVPN's encrypted HTTPS proxy servers, like the NordVPN browser extension. "
-                + "Reload open pages after switching."
+            return "Ferret picks the least busy of NordVPN's encrypted HTTPS proxy servers in the location you "
+                + "choose. Only places with proxy servers are listed. Reload open pages after switching."
         default:
             return "Asks NordVPN which IP address your browsing traffic comes from."
         }
@@ -123,9 +126,17 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
             embed(usernameField, in: cell)
         case .password:
             embed(passwordField, in: cell)
-        case .location:
-            cell.textLabel?.text = "Location"
+        case .country:
+            cell.textLabel?.text = "Country"
             cell.detailTextLabel?.text = manager.store.country?.name ?? "Fastest Available"
+            cell.accessoryType = .disclosureIndicator
+        case .region:
+            cell.textLabel?.text = "Region"
+            cell.detailTextLabel?.text = manager.store.region?.name ?? "Any Region"
+            cell.accessoryType = .disclosureIndicator
+        case .city:
+            cell.textLabel?.text = "City"
+            cell.detailTextLabel?.text = manager.store.city?.name ?? "Any City"
             cell.accessoryType = .disclosureIndicator
         case .server:
             cell.textLabel?.text = "Server"
@@ -157,8 +168,12 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         tableView.deselectRow(at: indexPath, animated: true)
         guard !isBusy else { return }
         switch sections[indexPath.section][indexPath.row] {
-        case .location:
-            showCountries()
+        case .country:
+            showPicker(.country)
+        case .region:
+            showPicker(.region)
+        case .city:
+            showPicker(.city)
         case .switchServer:
             run { try await $0.refreshServer() }
         case .check:
@@ -193,11 +208,34 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         run { try await $0.setEnabled(enabled) }
     }
 
-    private func showCountries() {
-        let picker = NordCountryPickerViewController(manager: manager) { [weak self] country in
-            self?.run { try await $0.setCountry(country) }
+    private func showPicker(_ level: NordPlacePickerViewController.Level) {
+        let manager = self.manager
+        let picker: NordPlacePickerViewController
+        switch level {
+        case .country:
+            picker = NordPlacePickerViewController(level: level, selected: manager.store.country,
+                                                   load: { try await manager.loadCountries() },
+                                                   onPick: { [weak self] in self?.pick($0, level: level) })
+        case .region:
+            picker = NordPlacePickerViewController(level: level, selected: manager.store.region,
+                                                   load: { try await manager.loadRegions() },
+                                                   onPick: { [weak self] in self?.pick($0, level: level) })
+        case .city:
+            picker = NordPlacePickerViewController(level: level, selected: manager.store.city,
+                                                   load: { try await manager.loadCities() },
+                                                   onPick: { [weak self] in self?.pick($0, level: level) })
         }
         navigationController?.pushViewController(picker, animated: true)
+    }
+
+    private func pick(_ place: NordPlace?, level: NordPlacePickerViewController.Level) {
+        run { manager in
+            switch level {
+            case .country: try await manager.setCountry(place)
+            case .region: try await manager.setRegion(place)
+            case .city: try await manager.setCity(place)
+            }
+        }
     }
 
     private func checkConnection() {
@@ -241,17 +279,55 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
     }
 }
 
-/// Picks the proxy location: "Fastest Available" or one of NordVPN's countries.
+/// Picks a country, region or city, with an "any" choice at the top.
 @MainActor
-final class NordCountryPickerViewController: UITableViewController, UISearchResultsUpdating {
-    private let manager: NordProxyManager
-    private let onPick: @MainActor (NordCountry?) -> Void
-    private var countries: [NordCountry] = []
-    private var filtered: [NordCountry] = []
+final class NordPlacePickerViewController: UITableViewController, UISearchResultsUpdating {
+    enum Level {
+        case country
+        case region
+        case city
+
+        var title: String {
+            switch self {
+            case .country: return "Country"
+            case .region: return "Region"
+            case .city: return "City"
+            }
+        }
+
+        var anyTitle: String {
+            switch self {
+            case .country: return "Fastest Available"
+            case .region: return "Any Region"
+            case .city: return "Any City"
+            }
+        }
+
+        var emptyMessage: String {
+            switch self {
+            case .country: return "Couldn't load NordVPN's countries."
+            case .region: return "NordVPN doesn't list regions with proxy servers here. Choose a city instead."
+            case .city: return "Couldn't find cities with NordVPN proxy servers here."
+            }
+        }
+    }
+
+    private let level: Level
+    private let selectedID: Int?
+    private let load: @MainActor () async throws -> [NordPlace]
+    private let onPick: @MainActor (NordPlace?) -> Void
+    private var places: [NordPlace] = []
+    private var filtered: [NordPlace] = []
+    private var isLoading = true
     private let searchController = UISearchController(searchResultsController: nil)
 
-    init(manager: NordProxyManager, onPick: @escaping @MainActor (NordCountry?) -> Void) {
-        self.manager = manager
+    init(level: Level,
+         selected: NordPlace?,
+         load: @escaping @MainActor () async throws -> [NordPlace],
+         onPick: @escaping @MainActor (NordPlace?) -> Void) {
+        self.level = level
+        self.selectedID = selected?.id
+        self.load = load
         self.onPick = onPick
         super.init(style: .insetGrouped)
     }
@@ -262,24 +338,21 @@ final class NordCountryPickerViewController: UITableViewController, UISearchResu
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Location"
+        title = level.title
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         navigationItem.searchController = searchController
         Task {
-            do {
-                countries = try await manager.loadCountries()
-            } catch {
-                countries = []
-            }
-            filtered = countries
+            places = (try? await load()) ?? []
+            filtered = places
+            isLoading = false
             tableView.reloadData()
         }
     }
 
     func updateSearchResults(for searchController: UISearchController) {
         let query = searchController.searchBar.text?.trimmingCharacters(in: .whitespaces) ?? ""
-        filtered = query.isEmpty ? countries : countries.filter { $0.name.localizedCaseInsensitiveContains(query) }
+        filtered = query.isEmpty ? places : places.filter { $0.name.localizedCaseInsensitiveContains(query) }
         tableView.reloadData()
     }
 
@@ -292,19 +365,19 @@ final class NordCountryPickerViewController: UITableViewController, UISearchResu
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        return section == 1 && countries.isEmpty ? "Loading NordVPN locations…" : nil
+        guard section == 1, places.isEmpty else { return nil }
+        return isLoading ? "Loading NordVPN locations…" : level.emptyMessage
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-        let selectedID = manager.store.country?.id
         if indexPath.section == 0 {
-            cell.textLabel?.text = "Fastest Available"
+            cell.textLabel?.text = level.anyTitle
             cell.accessoryType = selectedID == nil ? .checkmark : .none
         } else {
-            let country = filtered[indexPath.row]
-            cell.textLabel?.text = country.name
-            cell.accessoryType = selectedID == country.id ? .checkmark : .none
+            let place = filtered[indexPath.row]
+            cell.textLabel?.text = place.name
+            cell.accessoryType = selectedID == place.id ? .checkmark : .none
         }
         cell.tintColor = FerretStyle.accent
         return cell
