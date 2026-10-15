@@ -128,6 +128,8 @@ class AppDelegate: UIResponder,
         // Fix iOS simulator builds for Fennec after running unit tests locally [FXIOS-10712]
         fixSimulatorDevBuild(application)
 
+        DataProtectionManager.apply()
+
         pushNotificationSetup()
         appLaunchUtil?.setUpPostLaunchDependencies()
         backgroundWorkUtility = BackgroundFetchAndProcessingUtility()

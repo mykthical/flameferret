@@ -430,6 +430,8 @@ class AppSettingsTableViewController: SettingsTableViewController,
 
         privacySettings.append(ClearPrivateDataSetting(settings: self, settingsDelegate: parentCoordinator))
 
+        privacySettings.append(AppLockSetting(theme: currentTheme()))
+
         if let profile {
             privacySettings.append(
                 BoolSetting(

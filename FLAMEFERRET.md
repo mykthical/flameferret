@@ -50,6 +50,25 @@ AdGuard's libraries are licensed under GPL-3.0 (`SafariConverterLib`, `@adguard/
 `@adguard/scriptlets`, `@adguard/extended-css`). The JavaScript bundles are built from
 `firefox-ios/AdGuardJS` with `./scripts/flameferret-build-adguard-js.sh`.
 
+## PIN lock and encryption
+
+**Settings → Privacy → Passcode & Data Protection**
+
+- **Require PIN:** a 6-digit PIN to open Flameferret, with optional Face ID or Touch ID. You choose
+  whether it locks immediately or after 1, 5, 15 or 60 minutes away, and there's a *Lock Now* button.
+  The lock screen covers every window and also hides your tabs in the app switcher.
+- **Wrong PINs:** after 5 wrong tries you wait 30 seconds, then 1, 5, 15 and 60 minutes for each
+  further miss. The wait survives restarting the app. Data is never erased.
+- **Forgotten PIN:** there's no recovery; delete and reinstall the app (this erases its data).
+- **Protect Data While Locked** (on by default): moves everything Flameferret stores — history, tabs,
+  cookies and website data, saved passwords, extensions and ad-blocking data — to iOS's strongest
+  practical encryption class. Files are encrypted with a key that's discarded shortly after your iPhone
+  locks, so they can't be read without your device passcode. Files already open, such as active
+  downloads, keep working in the background.
+
+The PIN is never stored. Flameferret keeps a salted PBKDF2-SHA256 hash (200,000 rounds) in the
+Keychain, readable only on this device while it's unlocked.
+
 ## Using extensions
 
 - **Menu → Extensions** opens the extensions screen. Tap an extension to open its popup or settings,
@@ -121,6 +140,7 @@ if Xcode says it's taken.
   `WebExtensionAPISource.swift`.
 - AdGuard integration: `firefox-ios/Client/Frontend/Browser/AdGuard/` (`AdGuardManager.swift` applies
   rules to tabs, `AdGuardCompiler.swift` converts filter lists).
+- PIN lock and data protection: `firefox-ios/Client/Frontend/Browser/AppLock/`.
 - Unit tests: `firefox-ios/firefox-ios-tests/Tests/ClientTests/WebExtensions/`.
 - Debug extension pages and content scripts with Safari's Web Inspector (Settings → Safari → Advanced →
   Web Inspector on the phone, then Develop menu on a Mac); background pages show up as separate pages.

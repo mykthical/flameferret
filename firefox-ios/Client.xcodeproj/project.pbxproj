@@ -12627,6 +12627,7 @@
 		FC16179A00000000000000A1 /* WebCompat */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebCompat; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A2 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A3 /* AdGuard */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AdGuard; sourceTree = "<group>"; };
+		FF1A5E7E00000000000000A4 /* AppLock */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = AppLock; sourceTree = "<group>"; };
 		FF1A5E7E00000000000000A1 /* WebExtensions */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = WebExtensions; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
@@ -16936,6 +16937,7 @@
 				034784BA2E2690F600D04A84 /* TermsOfUse */,
 				FC16179A00000000000000A1 /* WebCompat */,
 				FF1A5E7E00000000000000A1 /* WebExtensions */,
+				FF1A5E7E00000000000000A4 /* AppLock */,
 				FF1A5E7E00000000000000A3 /* AdGuard */,
 				81A3F6EE2C2DAED500BDD86B /* MainMenu */,
 				1D7B78952ADF324E0011E9F2 /* Event Queue */,
@@ -18669,6 +18671,7 @@
 				ED85DD2C2DE669FF00487807 /* probes */,
 				FC16179A00000000000000A1 /* WebCompat */,
 				FF1A5E7E00000000000000A1 /* WebExtensions */,
+				FF1A5E7E00000000000000A4 /* AppLock */,
 				FF1A5E7E00000000000000A3 /* AdGuard */,
 			);
 			name = Client;

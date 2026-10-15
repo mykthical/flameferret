@@ -54,6 +54,7 @@ class SceneDelegate: UIResponder,
         self.sceneCoordinator = sceneCoordinator
         self.window = sceneCoordinator.window
         sceneCoordinator.start()
+        AppLockManager.shared.sceneDidConnect(scene)
         handle(connectionOptions: connectionOptions)
         if !sessionManager.launchSessionProvider.openedFromExternalSource {
             shareTelemetry.cancelOpenURLTimeRecord()
@@ -61,6 +62,7 @@ class SceneDelegate: UIResponder,
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {
+        AppLockManager.shared.sceneDidDisconnect(scene)
         let logUUID = sceneCoordinator?.windowUUID.uuidString ?? "<nil>"
         logger.log("SceneDelegate: scene did disconnect. UUID: \(logUUID)", level: .info, category: .lifecycle)
         // Handle clean-up here for closing windows on iPad
@@ -91,6 +93,7 @@ class SceneDelegate: UIResponder,
         guard !AppConstants.isRunningUnitTest else { return }
         let logUUID = sceneCoordinator?.windowUUID.uuidString ?? "<nil>"
         logger.log("SceneDelegate: scene did become active. UUID: \(logUUID)", level: .info, category: .lifecycle)
+        AppLockManager.shared.sceneDidBecomeActive(scene)
 
         // Resume previously stopped downloads for, and on, THIS scene only.
         if let uuid = sceneCoordinator?.windowUUID {
@@ -107,7 +110,12 @@ class SceneDelegate: UIResponder,
     ///
     /// Use this method to reduce the scene's memory usage, clear claims to resources & dependencies / services.
     /// UIKit takes a snapshot of the scene for the app switcher after this method returns.
+    func sceneWillResignActive(_ scene: UIScene) {
+        AppLockManager.shared.sceneWillResignActive(scene)
+    }
+
     func sceneDidEnterBackground(_ scene: UIScene) {
+        AppLockManager.shared.sceneDidEnterBackground(scene)
         let logUUID = sceneCoordinator?.windowUUID.uuidString ?? "<nil>"
         logger.log("SceneDelegate: scene did enter background. UUID: \(logUUID)", level: .info, category: .lifecycle)
         if let uuid = sceneCoordinator?.windowUUID {
