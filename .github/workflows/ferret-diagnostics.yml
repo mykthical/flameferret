@@ -34,6 +34,25 @@ jobs:
           done
           cat out/certs.txt
 
+      - name: Try the proxy.nordvpn.com names
+        run: |
+          for host in $(cat out/hosts.txt); do
+            label=${host%.nordvpn.com}
+            alt="$label.proxy.nordvpn.com"
+            {
+              echo "=== $alt ==="
+              echo "DNS: $(dig +short "$alt" | tr '\n' ' ')   (plain: $(dig +short "$host" | tr '\n' ' '))"
+              curl -sv --max-time 15 "https://$alt:89/" -o /dev/null 2>&1 | grep -E "subject|SSL connection|no alternative|verify|error|HTTP/" || true
+              echo "--- as an HTTPS proxy without credentials (expect 407) ---"
+              curl -s --max-time 20 -o /dev/null -w "connect=%{http_connect} code=%{http_code} exit=%{exitcode} err=%{errormsg}\n" \
+                --proxy "https://$alt:89" https://api.nordvpn.com/v1/helpers/ips/insights 2>&1 || true
+              echo "--- plain name with SNI/verification name set to proxy.nordvpn.com (curl --connect-to) ---"
+              curl -s --max-time 20 -o /dev/null -w "connect=%{http_connect} code=%{http_code} exit=%{exitcode} err=%{errormsg}\n" \
+                --proxy "https://$alt:89" --connect-to "$alt:89:$host:89" https://api.nordvpn.com/v1/helpers/ips/insights 2>&1 || true
+            } >> out/proxy-names.txt
+          done
+          cat out/proxy-names.txt
+
       - name: Push results to the diag branch
         if: always()
         env:
