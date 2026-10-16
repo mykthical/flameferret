@@ -152,6 +152,14 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         if let webView { installPageScripts(in: webView) }
     }
 
+    /// AdGuard reinstalls the tab's user scripts when a page's rules change, which drops ours.
+    private func ensurePageScripts(in webView: WKWebView) {
+        let scripts = webView.configuration.userContentController.userScripts
+        if !scripts.contains(where: { $0.source.contains("flameferret-shell-css") }) {
+            installPageScripts(in: webView)
+        }
+    }
+
     private func installPageScripts(in webView: WKWebView) {
         let controller = webView.configuration.userContentController
         controller.addUserScript(WKUserScript(source: Self.chromeHidingJS(for: mode),
@@ -223,6 +231,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         if TubeLinks.isInternal(url) {
             if navigationAction.targetFrame?.isMainFrame != false {
                 AdGuardManager.shared.prepareMainFrameNavigation(to: url, in: tab)
+                ensurePageScripts(in: webView)
             }
             decisionHandler(.allow)
             return

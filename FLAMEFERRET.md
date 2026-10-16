@@ -10,7 +10,8 @@ this build is renamed so it can't be confused with the real app and can be insta
 
 Ferret opens straight into a native YouTube client (Home, Following, Saved, Settings and Search),
 built on the RUTUBE X design (github.com/mykthical/rutube-lite) with the Ferret engine underneath.
-Firefox's own browser screens are no longer shown. Signed out, Home falls back to Trending.
+Firefox's own browser screens are no longer shown. Signed out, YouTube gives no recommendations, so
+Home shows the newest videos from channels you follow in the app.
 
 - **Lists are native**, fetched from YouTube inside a hidden Flameferret web view so your optional
   YouTube sign-in applies. Following and Saved also work signed out and stay on the phone.

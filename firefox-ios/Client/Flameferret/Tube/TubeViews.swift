@@ -72,34 +72,52 @@ struct TubeErrorRow: View {
 @available(iOS 18.0, *)
 struct TubeHomeView: View {
     @StateObject private var feed = TubeFeed()
+    @StateObject private var followed = TubeFollowingFeed()
     @EnvironmentObject private var engine: TubeEngine
     @EnvironmentObject private var router: TubeRouter
+    @EnvironmentObject private var library: TubeLibrary
 
     var body: some View {
         NavigationStack(path: $router.homePath) {
-            TubeVideoList(feed: feed, emptyText: emptyText)
-                .navigationTitle("Home")
-                .tubeDestinations()
-                .refreshable { await feed.load(firstNonEmpty: Self.sources) }
-                .task(id: engine.sessionGeneration) {
-                    await feed.load(firstNonEmpty: Self.sources)
-                    await openForSimulatorCheck()
+            Group {
+                if showsFollowed {
+                    List {
+                        ForEach(followed.videos) { video in
+                            NavigationLink(value: video) { TubeVideoRow(video: video) }
+                        }
+                    }
+                    .listStyle(.plain)
+                } else {
+                    TubeVideoList(feed: feed, emptyText: emptyText)
                 }
+            }
+            .navigationTitle("Home")
+            .tubeDestinations()
+            .refreshable { await load() }
+            .task(id: engine.sessionGeneration) {
+                await load()
+                await openForSimulatorCheck()
+            }
         }
     }
 
-    /// Recommendations first; signed out (or with YouTube history paused) that feed is empty,
-    /// so fall back to what's popular.
-    static var sources: [TubeFeed.Source] { [
-        .browse("FEwhat_to_watch", params: nil),
-        .browse("FEtrending", params: nil),
-        .browse("FEexplore", params: nil),
-    ] }
+    /// YouTube gives signed-out users no recommendations, so Home shows the newest videos from
+    /// channels followed in this app instead.
+    private var showsFollowed: Bool {
+        feed.videos.isEmpty && !followed.videos.isEmpty
+    }
+
+    private func load() async {
+        await feed.load(.browse("FEwhat_to_watch", params: nil))
+        if feed.videos.isEmpty, !library.following.isEmpty {
+            await followed.load(local: library.following, signedIn: false, engine: engine)
+        }
+    }
 
     private var emptyText: String {
         engine.isSignedIn
             ? "Nothing to show yet. Pull down to refresh."
-            : "Sign in from Settings to see recommendations, or use Search."
+            : "Sign in from Settings for recommendations, or follow channels to see their newest videos here."
     }
 
     /// Used only by the CI simulator check: `-openFirstVideo` or `-openVideo <id>`.

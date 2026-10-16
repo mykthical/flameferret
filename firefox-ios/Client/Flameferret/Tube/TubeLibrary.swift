@@ -138,14 +138,6 @@ final class TubeFeed: ObservableObject {
         }
     }
 
-    /// Loads each source in turn and keeps the first one that has videos.
-    func load(firstNonEmpty sources: [Source]) async {
-        for source in sources {
-            await load(source)
-            if !videos.isEmpty || Task.isCancelled { return }
-        }
-    }
-
     func loadMoreIfNeeded(after video: TubeVideo) async {
         guard video.id == videos.last?.id, let token = continuation, !loading, let source else { return }
         loading = true
