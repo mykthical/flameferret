@@ -389,6 +389,8 @@ class AppSettingsTableViewController: SettingsTableViewController,
             )
         }
 
+        generalSettings.append(FerretThemeSetting(theme: currentTheme()))
+
         // For users whose devices support alternate app icons, add the App Icon setting
         if UIApplication.shared.supportsAlternateIcons {
             generalSettings.append(
@@ -429,6 +431,9 @@ class AppSettingsTableViewController: SettingsTableViewController,
         privacySettings.append(AutofillPasswordSetting(settings: self, settingsDelegate: parentCoordinator))
 
         privacySettings.append(ClearPrivateDataSetting(settings: self, settingsDelegate: parentCoordinator))
+
+        privacySettings.append(AppLockSetting(theme: currentTheme()))
+        privacySettings.append(NordProxySetting(theme: currentTheme()))
 
         if let profile {
             privacySettings.append(

@@ -12,26 +12,26 @@ final class NovaColors {
     static let Black = UIColor(rgb: 0x000000)
     static let White = UIColor(rgb: 0xffffff)
 
-    // MARK: - Gray
-    static let Gray0 = UIColor(rgb: 0xfcfbff)
-    static let Gray5 = UIColor(rgb: 0xf7f6fb)
-    static let Gray10 = UIColor(rgb: 0xefedf2)
-    static let Gray15 = UIColor(rgb: 0xe3e2e7)
-    static let Gray20 = UIColor(rgb: 0xd6d5da)
-    static let Gray25 = UIColor(rgb: 0xc7c6cb)
-    static let Gray30 = UIColor(rgb: 0xb7b6ba)
-    static let Gray35 = UIColor(rgb: 0xa6a4a9)
-    static let Gray40 = UIColor(rgb: 0x949297)
-    static let Gray45 = UIColor(rgb: 0x817f84)
-    static let Gray50 = UIColor(rgb: 0x67666a)
-    static let Gray55 = UIColor(rgb: 0x515054)
-    static let Gray60 = UIColor(rgb: 0x3f3e42)
-    static let Gray65 = UIColor(rgb: 0x312f33)
-    static let Gray70 = UIColor(rgb: 0x252428)
-    static let Gray75 = UIColor(rgb: 0x1d1b1f)
-    static let Gray80 = UIColor(rgb: 0x171519)
-    static let Gray85 = UIColor(rgb: 0x131215)
-    static let Gray90 = UIColor(rgb: 0x121114)
+    // MARK: - Gray (follows the selected Ferret theme)
+    static var Gray0: UIColor { FerretThemeStore.palette.neutral[0] }
+    static var Gray5: UIColor { FerretThemeStore.palette.neutral[1] }
+    static var Gray10: UIColor { FerretThemeStore.palette.neutral[2] }
+    static var Gray15: UIColor { FerretThemeStore.palette.neutral[3] }
+    static var Gray20: UIColor { FerretThemeStore.palette.neutral[4] }
+    static var Gray25: UIColor { FerretThemeStore.palette.neutral[5] }
+    static var Gray30: UIColor { FerretThemeStore.palette.neutral[6] }
+    static var Gray35: UIColor { FerretThemeStore.palette.neutral[7] }
+    static var Gray40: UIColor { FerretThemeStore.palette.neutral[8] }
+    static var Gray45: UIColor { FerretThemeStore.palette.neutral[9] }
+    static var Gray50: UIColor { FerretThemeStore.palette.neutral[10] }
+    static var Gray55: UIColor { FerretThemeStore.palette.neutral[11] }
+    static var Gray60: UIColor { FerretThemeStore.palette.neutral[12] }
+    static var Gray65: UIColor { FerretThemeStore.palette.neutral[13] }
+    static var Gray70: UIColor { FerretThemeStore.palette.neutral[14] }
+    static var Gray75: UIColor { FerretThemeStore.palette.neutral[15] }
+    static var Gray80: UIColor { FerretThemeStore.palette.neutral[16] }
+    static var Gray85: UIColor { FerretThemeStore.palette.neutral[17] }
+    static var Gray90: UIColor { FerretThemeStore.palette.neutral[18] }
 
     // MARK: - Violet Desaturated
     static let VioletDesaturated0 = UIColor(rgb: 0xf2f0f8)
@@ -152,4 +152,52 @@ final class NovaColors {
     static let Blue70 = UIColor(rgb: 0x23327b)
     static let Blue80 = UIColor(rgb: 0x17214c)
     static let Blue90 = UIColor(rgb: 0x111524)
+
+    // MARK: - Navy (follows the selected Ferret theme)
+    static var Navy0: UIColor { FerretThemeStore.palette.accent[0] }
+    static var Navy10: UIColor { FerretThemeStore.palette.accent[1] }
+    static var Navy20: UIColor { FerretThemeStore.palette.accent[2] }
+    static var Navy30: UIColor { FerretThemeStore.palette.accent[3] }
+    static var Navy40: UIColor { FerretThemeStore.palette.accent[4] }
+    static var Navy50: UIColor { FerretThemeStore.palette.accent[5] }
+    static var Navy60: UIColor { FerretThemeStore.palette.accent[6] }
+    static var Navy70: UIColor { FerretThemeStore.palette.accent[7] }
+    static var Navy80: UIColor { FerretThemeStore.palette.accent[8] }
+    static var Navy90: UIColor { FerretThemeStore.palette.accent[9] }
+
+    // MARK: - Slate (follows the selected Ferret theme)
+    static var Slate0: UIColor { FerretThemeStore.palette.ink[0] }
+    static var Slate10: UIColor { FerretThemeStore.palette.ink[1] }
+    static var Slate20: UIColor { FerretThemeStore.palette.ink[2] }
+    static var Slate30: UIColor { FerretThemeStore.palette.ink[3] }
+    static var Slate40: UIColor { FerretThemeStore.palette.ink[4] }
+    static var Slate50: UIColor { FerretThemeStore.palette.ink[5] }
+    static var Slate60: UIColor { FerretThemeStore.palette.ink[6] }
+    static var Slate70: UIColor { FerretThemeStore.palette.ink[7] }
+    static var Slate80: UIColor { FerretThemeStore.palette.ink[8] }
+    static var Slate90: UIColor { FerretThemeStore.palette.ink[9] }
+
+    // MARK: - Oxblood
+    static let Oxblood0 = UIColor(rgb: 0xf8eceb)
+    static let Oxblood10 = UIColor(rgb: 0xefd0ce)
+    static let Oxblood20 = UIColor(rgb: 0xe0a9a6)
+    static let Oxblood30 = UIColor(rgb: 0xce7f7b)
+    static let Oxblood40 = UIColor(rgb: 0xb85651)
+    static let Oxblood50 = UIColor(rgb: 0x9e2b2b)
+    static let Oxblood60 = UIColor(rgb: 0x7e2222)
+    static let Oxblood70 = UIColor(rgb: 0x5e1a1a)
+    static let Oxblood80 = UIColor(rgb: 0x3f1313)
+    static let Oxblood90 = UIColor(rgb: 0x220c0c)
+
+    // MARK: - Brass (follows the selected Ferret theme)
+    static var Brass0: UIColor { FerretThemeStore.palette.secondary[0] }
+    static var Brass10: UIColor { FerretThemeStore.palette.secondary[1] }
+    static var Brass20: UIColor { FerretThemeStore.palette.secondary[2] }
+    static var Brass30: UIColor { FerretThemeStore.palette.secondary[3] }
+    static var Brass40: UIColor { FerretThemeStore.palette.secondary[4] }
+    static var Brass50: UIColor { FerretThemeStore.palette.secondary[5] }
+    static var Brass60: UIColor { FerretThemeStore.palette.secondary[6] }
+    static var Brass70: UIColor { FerretThemeStore.palette.secondary[7] }
+    static var Brass80: UIColor { FerretThemeStore.palette.secondary[8] }
+    static var Brass90: UIColor { FerretThemeStore.palette.secondary[9] }
 }

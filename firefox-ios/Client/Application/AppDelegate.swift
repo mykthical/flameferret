@@ -70,6 +70,7 @@ class AppDelegate: UIResponder,
         willFinishLaunchingWithOptions
         launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
+        FerretThemeStore.load()
         shareTelemetry.recordOpenDeeplinkTime()
         // Configure app information for BrowserKit, needed for logger
         BrowserKitInformation.shared.configure(buildChannel: AppConstants.buildChannel,
@@ -100,6 +101,7 @@ class AppDelegate: UIResponder,
         // Then setup dependency container as it's needed for everything else
         DependencyHelper().bootstrapDependencies()
 
+        SecureDefaults.apply(to: profile.prefs)
         appLaunchUtil = AppLaunchUtil(profile: profile)
         appLaunchUtil?.setUpPreLaunchDependencies()
 
@@ -133,6 +135,9 @@ class AppDelegate: UIResponder,
         fixSimulatorDevBuild(application)
 
         // Flameferret: no push registration, background sync, Firefox Suggest ingestion or MetricKit reports.
+        DataProtectionManager.apply()
+        NordProxyManager.shared.start()
+
         appLaunchUtil?.setUpPostLaunchDependencies()
 
         let topSitesProvider = TopSitesProviderImplementation(

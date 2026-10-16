@@ -1,99 +1,35 @@
 {
   "fill-specializations": [
     {
-      "value": "automatic"
+      "value": {
+        "solid": "srgb:1.00000,1.00000,1.00000,1.00000"
+      }
     },
     {
       "appearance": "dark",
-      "value": "automatic"
+      "value": {
+        "solid": "srgb:0.08627,0.08627,0.10196,1.00000"
+      }
     }
   ],
   "groups": [
     {
-      "name": "Eye",
+      "name": "Logo",
       "layers": [
         {
-          "image-name": "eye.svg",
-          "name": "eye"
+          "image-name": "flameferret-logo.png",
+          "name": "logo"
         }
       ],
-      "position": {
-        "scale": 1.7,
-        "translation-in-points": [
-          0,
-          0
-        ]
-      },
       "shadow": {
-        "kind": "neutral",
-        "opacity": 0.2
+        "kind": "layer-color",
+        "opacity": 0.45
       },
+      "specular": true,
       "translucency": {
         "enabled": false,
         "value": 0.5
       }
-    },
-    {
-      "name": "Ferret",
-      "layers": [
-        {
-          "image-name": "body.svg",
-          "name": "body"
-        }
-      ],
-      "position": {
-        "scale": 1.7,
-        "translation-in-points": [
-          0,
-          0
-        ]
-      },
-      "shadow": {
-        "kind": "layer-color",
-        "opacity": 0.5
-      },
-      "specular": true,
-      "translucency": {
-        "enabled": false,
-        "value": 0.4
-      }
-    },
-    {
-      "name": "Flame",
-      "layers": [
-        {
-          "image-name": "flame.svg",
-          "name": "flame"
-        }
-      ],
-      "position": {
-        "scale": 1.7,
-        "translation-in-points": [
-          0,
-          0
-        ]
-      },
-      "blur-material": 0.3,
-      "shadow": {
-        "kind": "layer-color",
-        "opacity": 0.6
-      },
-      "specular": true,
-      "translucency-specializations": [
-        {
-          "value": {
-            "enabled": true,
-            "value": 0.3
-          }
-        },
-        {
-          "appearance": "tinted",
-          "value": {
-            "enabled": true,
-            "value": 0.8
-          }
-        }
-      ]
     }
   ],
   "supported-platforms": {

@@ -5,7 +5,7 @@
 import UIKit
 
 public enum AppName: String, CustomStringConvertible {
-    case shortName = "Flameferret"
+    case shortName = "Ferret"
 
     public var description: String {
         return self.rawValue

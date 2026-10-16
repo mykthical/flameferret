@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
 #
-# Builds an unsigned Flameferret.ipa ready for SideStore, AltStore or Sideloadly.
+# Builds an unsigned Ferret.ipa ready for SideStore, AltStore or Sideloadly.
 # Usage (from the repo root, on a Mac with Xcode): ./scripts/flameferret-build-ipa.sh
 # Set SKIP_BOOTSTRAP=1 to skip ./bootstrap.sh on repeat builds.
 set -euo pipefail
@@ -21,10 +21,12 @@ python3 scripts/flameferret-embed-js.py
 
 mkdir -p "$ROOT/build"
 cd firefox-ios
+# Pins live in Package.resolved; resolving without -onlyUsePackageVersionsFromResolvedFile lets
+# Xcode refresh the file's origin hash after Flameferret's added packages.
 xcodebuild -resolvePackageDependencies \
     -project Client.xcodeproj \
     -scheme Fennec \
-    -onlyUsePackageVersionsFromResolvedFile
+    -skipPackagePluginValidation
 
 set +e
 xcodebuild build \
@@ -57,8 +59,8 @@ fi
 
 rm -rf "$OUT"
 mkdir -p "$OUT/Payload"
-cp -R "$APP" "$OUT/Payload/Flameferret.app"
-APPDIR="$OUT/Payload/Flameferret.app"
+cp -R "$APP" "$OUT/Payload/Ferret.app"
+APPDIR="$OUT/Payload/Ferret.app"
 
 # Free Apple IDs can only register a few App IDs, so drop the widget/share/notification extensions.
 rm -rf "$APPDIR/PlugIns" "$APPDIR/Extensions"
@@ -83,5 +85,5 @@ if command -v codesign >/dev/null; then
         --entitlements "$ROOT/firefox-ios/Client/Entitlements/FlameferretSideload.entitlements" "$APPDIR"
 fi
 
-(cd "$OUT" && rm -f Flameferret.ipa && zip -qry -9 Flameferret.ipa Payload)
-echo "Built $OUT/Flameferret.ipa"
+(cd "$OUT" && rm -f Ferret.ipa && zip -qry -9 Ferret.ipa Payload)
+echo "Built $OUT/Ferret.ipa"

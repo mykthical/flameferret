@@ -647,6 +647,19 @@ extension BrowserViewController: WKNavigationDelegate {
 
         let shouldBlockExternalApps = profile.prefs.boolForKey(PrefsKeys.BlockOpeningExternalApps) ?? false
 
+        if navigationAction.targetFrame?.isMainFrame ?? true,
+           let secureURL = HTTPSFirstPolicy.shared.upgrade(url,
+                                                           method: navigationAction.request.httpMethod,
+                                                           in: webView) {
+            decisionHandler(.cancel)
+            webView.load(URLRequest(url: secureURL))
+            return
+        }
+
+        if navigationAction.targetFrame?.isMainFrame ?? true, ["http", "https"].contains(url.scheme ?? "") {
+            AdGuardManager.shared.prepareMainFrameNavigation(to: url, in: tab)
+        }
+
         // This is the normal case, opening a http or https url, which we handle by loading them in this WKWebView.
         // We always allow this. Additionally, data URIs are also handled just like normal web pages.
         if let scheme = url.scheme, ["http", "https", "blob", "file"].contains(scheme) {
@@ -661,7 +674,7 @@ extension BrowserViewController: WKNavigationDelegate {
             return
         }
 
-        if let scheme = url.scheme, !scheme.contains("firefox"), !scheme.contains("flameferret"), !shouldBlockExternalApps, !tab.isPrivate {
+        if let scheme = url.scheme, !scheme.contains("firefox"), !scheme.contains("ferret"), !shouldBlockExternalApps, !tab.isPrivate {
             handleCustomSchemeURLNavigation(url: url, navigationAction: navigationAction)
         }
 
@@ -1226,6 +1239,11 @@ extension BrowserViewController: WKNavigationDelegate {
             return
         }
 
+        if let insecureURL = HTTPSFirstPolicy.shared.fallback(after: error, in: webView) {
+            webView.load(URLRequest(url: insecureURL))
+            return
+        }
+
         if let url = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL {
             guard var errorPageURLComponents = URLComponents(
                 string: "\(InternalURL.baseUrl)/\(ErrorPageHandler.path)") else {
@@ -1314,6 +1332,7 @@ extension BrowserViewController: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation?) {
+        HTTPSFirstPolicy.shared.navigationCommitted(in: webView)
         guard let tab = tabManager[webView] else { return }
 
         // The main frame JSContext is available, and DOM parsing has begun.

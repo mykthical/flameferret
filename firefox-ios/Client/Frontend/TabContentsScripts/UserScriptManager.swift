@@ -160,5 +160,7 @@ class UserScriptManager {
             webView?.configuration.userContentController.addUserScript(backgroundAudioUserScript)
         }
         WebExtensionManager.shared.injectExtensions(into: webView)
+        AdGuardManager.shared.inject(into: webView)
+        WebExtensionStoreLabels.shared.inject(into: webView)
     }
 }

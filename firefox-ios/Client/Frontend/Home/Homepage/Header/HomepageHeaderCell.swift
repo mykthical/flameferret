@@ -15,7 +15,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
     enum UX {
         static let firefoxLogoImageSize = CGSize(width: 40, height: 40)
         static let privateNovaLogoImageSize = CGSize(width: 72, height: 72)
-        static let firefoxTextImageSize = CGSize(width: 136, height: 40)
+        static let firefoxTextImageSize = CGSize(width: 104, height: 40)
         static let interImageSpacing: CGFloat = 10
         static let quickAnswersButtonSize: CGFloat = 44
 
@@ -138,7 +138,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
 
         logoImage.image = isNovaPrivate
             ? UIImage(named: StandardImageIdentifiers.ExtraExtraExtraLarge.privateModeCircleFillMulticolor)
-            : UIImage(imageLiteralResourceName: ImageIdentifiers.homeHeaderLogoBall)
+            : UIImage(imageLiteralResourceName: ImageIdentifiers.homeHeaderLogoBall).withRenderingMode(.alwaysTemplate)
 
         quickAnswersButton.isHidden = !headerState.showQuickAnswersButton
 
@@ -244,6 +244,7 @@ class HomepageHeaderCell: UICollectionViewCell, ReusableCell, ThemeApplicable, F
     func applyTheme(theme: Theme) {
         self.theme = theme
         logoTextImage.tintColor = logoTextColor ?? theme.colors.textPrimary
+        logoImage.tintColor = logoTextColor ?? theme.colors.textPrimary
 
         updateQuickAnswersButton()
     }

@@ -288,7 +288,7 @@ function __flameferretInstall(config, mode) {
     getManifest: noWrap(function () { return clone(manifest); }),
     getPlatformInfo: function () { return Promise.resolve({ os: "ios", arch: "arm64", nacl_arch: "arm" }); },
     getBrowserInfo: function () {
-      return Promise.resolve({ name: "Flameferret", vendor: "Flameferret", version: config.appVersion, buildID: config.appVersion });
+      return Promise.resolve({ name: "Ferret", vendor: "Ferret", version: config.appVersion, buildID: config.appVersion });
     },
     sendMessage: function () {
       const parsed = parseSendMessageArgs(Array.prototype.slice.call(arguments));

@@ -9,6 +9,7 @@ import UniformTypeIdentifiers
 @MainActor
 final class WebExtensionsHubViewController: UITableViewController, UIDocumentPickerDelegate {
     private enum Section: Int, CaseIterable {
+        case adBlocking
         case installed
         case add
     }
@@ -41,8 +42,13 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        FerretStyle.styleCell(cell)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
+        FerretStyle.styleTable(tableView)
         title = "Extensions"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done,
                                                             target: self,
@@ -51,6 +57,10 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(reload),
                                                name: .webExtensionsDidChange,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(reload),
+                                               name: .adGuardStateDidChange,
                                                object: nil)
         manager.startIfNeeded()
         reload()
@@ -77,6 +87,7 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section) {
+        case .adBlocking: return 1
         case .installed: return max(extensions.count, 1)
         case .add: return AddRow.allCases.count
         case .none: return 0
@@ -85,6 +96,7 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch Section(rawValue: section) {
+        case .adBlocking: return "Built In"
         case .installed: return "Installed"
         case .add: return "Add Extensions"
         case .none: return nil
@@ -94,13 +106,20 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard Section(rawValue: section) == .add else { return nil }
         return "Tap an extension to use its button, open its settings or remove it. "
-            + "Extensions run on WebKit, so add-ons that need full request interception or Firefox-only "
-            + "internals may not work fully."
+            + "Add-ons on addons.mozilla.org are labelled with how well they work in Ferret, and you'll be "
+            + "warned before installing one that won't."
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         switch Section(rawValue: indexPath.section) {
+        case .adBlocking:
+            let adGuard = AdGuardManager.shared
+            cell.textLabel?.text = "AdGuard Ad Blocking"
+            cell.detailTextLabel?.text = adGuard.settings.isEnabled ? "On" : "Off"
+            cell.detailTextLabel?.textColor = .secondaryLabel
+            cell.imageView?.image = UIImage(systemName: "shield.lefthalf.filled")
+            cell.accessoryType = .disclosureIndicator
         case .installed:
             configureInstalledCell(cell, row: indexPath.row)
         case .add:
@@ -139,7 +158,7 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     }
 
     private func configureAddCell(_ cell: UITableViewCell, row: AddRow?) {
-        cell.textLabel?.textColor = .systemBlue
+        cell.textLabel?.textColor = FerretStyle.accent
         switch row {
         case .fromFile:
             cell.textLabel?.text = "Install from File…"
@@ -167,6 +186,9 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch Section(rawValue: indexPath.section) {
+        case .adBlocking:
+            let siteURL = manager.selectedTab().flatMap { $0.webView?.url ?? $0.url }
+            navigationController?.pushViewController(AdGuardSettingsViewController(currentSiteURL: siteURL), animated: true)
         case .installed:
             guard indexPath.row < extensions.count else { return }
             showActions(for: extensions[indexPath.row], sourceView: tableView.cellForRow(at: indexPath))

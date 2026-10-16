@@ -60,6 +60,17 @@ public struct DefaultWKEngineConfigurationProvider: WKEngineConfigurationProvide
     private static let defaultDataDetectorTypes: WKDataDetectorTypes = [.phoneNumber]
     private let configuration: WKWebViewConfiguration
 
+    /// Called with each data store web views use: the current ones as soon as it's set,
+    /// and every new private-browsing store after that. Used to apply per-app proxy settings.
+    public static var dataStoreObserver: (@MainActor (WKWebsiteDataStore) -> Void)? {
+        didSet { forEachDataStore { dataStoreObserver?($0) } }
+    }
+
+    public static func forEachDataStore(_ body: (WKWebsiteDataStore) -> Void) {
+        body(defaultStore)
+        body(nonPersistentStore)
+    }
+
     public init(configuration: WKWebViewConfiguration = WKWebViewConfiguration()) {
         self.configuration = configuration
     }
@@ -95,5 +106,6 @@ public struct DefaultWKEngineConfigurationProvider: WKEngineConfigurationProvide
 
     public func endPrivateBrowsingSession() {
         Self.nonPersistentStore = .nonPersistent()
+        Self.dataStoreObserver?(Self.nonPersistentStore)
     }
 }

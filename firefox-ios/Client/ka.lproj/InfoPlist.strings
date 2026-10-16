@@ -8,10 +8,10 @@
 "New Tab" = "ახალი ჩანართი";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Flameferret შეძლებს გამოიყენოს თქვენი კამერა QR-კოდების წასაკითხად ან სურათისა თU ვიდეოს გადასაღებად.";
+"NSCameraUsageDescription" = "Ferret შეძლებს გამოიყენოს თქვენი კამერა QR-კოდების წასაკითხად ან სურათისა თU ვიდეოს გადასაღებად.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Flameferret-ს ესაჭიროება Face ID შენახულ პაროლებსა და გადახდის საშუალებებთან წდვომისთვის.";
+"NSFaceIDUsageDescription" = "Ferret-ს ესაჭიროება Face ID შენახულ პაროლებსა და გადახდის საშუალებებთან წდვომისთვის.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "ვებსაიტებმა, შესაძლოა მოითხოვოს თქვენი მდებარეობის მონაცემები.";
@@ -23,7 +23,7 @@
 "NSPhotoLibraryAddUsageDescription" = "სურათების შენახვის საშუალებას იძლევა.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "ამის მეშვეობით Flameferret თქვენს ხმას ნაწერად აქცევს.";
+"NSSpeechRecognitionUsageDescription" = "ამის მეშვეობით Ferret თქვენს ხმას ნაწერად აქცევს.";
 
 /* (No Comment) */
 "Scan QR Code" = "QR კოდის წაკითხვა";
