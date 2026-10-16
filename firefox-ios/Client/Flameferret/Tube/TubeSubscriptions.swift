@@ -59,7 +59,7 @@ final class TubeSubscriptions: ObservableObject {
     /// Subscribes or unsubscribes. Signed out, this opens Google sign-in instead.
     func toggle(_ channel: TubeChannel) async {
         guard engine.isSignedIn else {
-            TubeRouter.shared.showSignIn = true
+            if #available(iOS 18.0, *) { TubeRouter.shared.showSignIn = true }
             return
         }
         let subscribe = !(states[channel.id] ?? false)
