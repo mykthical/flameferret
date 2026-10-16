@@ -16,7 +16,12 @@ echo "ferret-relay-ok" > "$WORK/site/ok.txt"
 head -c 8000000 /dev/urandom > "$WORK/site/big.bin"
 (cd "$WORK/site" && python3 -m http.server 18080 --bind 127.0.0.1 >/dev/null 2>&1) &
 python3 "$HERE/fake_nord_proxy.py" 18089 user 'pa:ss!' &
-sleep 2
+
+# Wait until the stand-in web server and proxy accept connections (slow on a cold build machine).
+for port in 18080 18089; do
+    for _ in $(seq 1 100); do nc -z 127.0.0.1 "$port" 2>/dev/null && break; sleep 0.2; done
+    nc -z 127.0.0.1 "$port" || { echo "::error title=Relay self-test::stand-in server on $port didn't start"; exit 1; }
+done
 
 start_relay() {
     "$WORK/relaytest" relay 18089 "$1" "$2" > "$WORK/$3.out" 2> "$WORK/$3.log" &
