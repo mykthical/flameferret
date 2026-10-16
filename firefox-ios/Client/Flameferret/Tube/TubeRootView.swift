@@ -134,7 +134,7 @@ final class TubeUnsupportedViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
         let label = UILabel()
-        label.text = "Flameferret needs iOS 18 or later."
+        label.text = "Ferret needs iOS 18 or later."
         label.textAlignment = .center
         label.numberOfLines = 0
         label.font = .preferredFont(forTextStyle: .headline)

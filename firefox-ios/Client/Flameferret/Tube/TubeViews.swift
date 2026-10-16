@@ -80,13 +80,21 @@ struct TubeHomeView: View {
             TubeVideoList(feed: feed, emptyText: emptyText)
                 .navigationTitle("Home")
                 .tubeDestinations()
-                .refreshable { await feed.load(.browse("FEwhat_to_watch", params: nil)) }
+                .refreshable { await feed.load(firstNonEmpty: Self.sources) }
                 .task(id: engine.sessionGeneration) {
-                    await feed.load(.browse("FEwhat_to_watch", params: nil))
+                    await feed.load(firstNonEmpty: Self.sources)
                     await openForSimulatorCheck()
                 }
         }
     }
+
+    /// Recommendations first; signed out (or with YouTube history paused) that feed is empty,
+    /// so fall back to what's popular.
+    static var sources: [TubeFeed.Source] { [
+        .browse("FEwhat_to_watch", params: nil),
+        .browse("FEtrending", params: nil),
+        .browse("FEexplore", params: nil),
+    ] }
 
     private var emptyText: String {
         engine.isSignedIn

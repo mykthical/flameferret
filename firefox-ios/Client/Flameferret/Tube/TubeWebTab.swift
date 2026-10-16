@@ -9,8 +9,8 @@ import SwiftUI
 import UIKit
 import WebKit
 
-/// A Flameferret browser tab used by the YouTube shell. It runs the bundled extensions
-/// (uBlock Origin Lite, SponsorBlock), keeps playing in the background and only stays on YouTube.
+/// A Ferret browser tab used by the YouTube shell. It runs AdGuard and the bundled extensions
+/// (SponsorBlock), keeps playing in the background and only stays on YouTube.
 @MainActor
 final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     enum Mode {
@@ -221,6 +221,9 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
             return
         }
         if TubeLinks.isInternal(url) {
+            if navigationAction.targetFrame?.isMainFrame != false {
+                AdGuardManager.shared.prepareMainFrameNavigation(to: url, in: tab)
+            }
             decisionHandler(.allow)
             return
         }

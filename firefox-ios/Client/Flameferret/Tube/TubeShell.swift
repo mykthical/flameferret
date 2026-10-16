@@ -14,29 +14,36 @@ import UIKit
 @MainActor
 enum TubeBundledExtensions {
     enum Package: String, CaseIterable {
-        case uBlockOriginLite = "ublock-origin-lite"
         case sponsorBlock = "sponsorblock"
 
         var extensionID: String {
             switch self {
-            case .uBlockOriginLite: return "uBOLiteRedux@raymondhill.net"
             case .sponsorBlock: return "sponsorBlocker@ajay.app"
             }
         }
 
         var displayName: String {
             switch self {
-            case .uBlockOriginLite: return "uBlock Origin Lite"
             case .sponsorBlock: return "SponsorBlock"
             }
         }
     }
+
+    /// uBlock Origin Lite shipped in earlier builds; AdGuard is now built in, so the bundled copy is
+    /// removed once to avoid two blockers fighting over the same page.
+    private static let retiredBundledIDs = ["uBOLiteRedux@raymondhill.net": "tube.bundledExtension.ublock-origin-lite"]
 
     /// Installs or updates each bundled package when the copy in the app differs from the last one
     /// installed. Removing a bundled extension sticks until the app ships a new version of it.
     static func installIfNeeded(defaults: UserDefaults = .standard) {
         let manager = WebExtensionManager.shared
         manager.startIfNeeded()
+        for (extensionID, key) in retiredBundledIDs where defaults.string(forKey: key) != nil {
+            if let installed = manager.extensions.first(where: { $0.id == extensionID }) {
+                manager.uninstall(installed)
+            }
+            defaults.removeObject(forKey: key)
+        }
         for package in Package.allCases {
             guard let url = Bundle.main.url(forResource: package.rawValue, withExtension: "xpi"),
                   let data = try? Data(contentsOf: url) else {
@@ -81,6 +88,7 @@ enum TubeShell {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
 
         TubeBundledExtensions.installIfNeeded()
+        AdGuardManager.shared.startIfNeeded()
         TubeEngine.shared.start()
 
         if #available(iOS 18.0, *) {

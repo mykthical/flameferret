@@ -18,12 +18,23 @@ struct TubeSettingsView: View {
     @State private var confirmWipe = false
     @State private var confirmSignOut = false
     @State private var showHub = false
+    @State private var adGuardOn = AdGuardManager.shared.settings.isEnabled
+    @State private var appLockOn = AppLockManager.shared.isEnabled
+    @State private var proxyOn = NordProxyManager.shared.store.isEnabled
+    @State private var sheet: SettingsSheet?
+
+    enum SettingsSheet: String, Identifiable {
+        case adGuard, appLock, proxy
+        var id: String { rawValue }
+    }
 
     var body: some View {
         NavigationStack {
             Form {
                 accountSection
+                adBlockingSection
                 extensionsSection
+                securitySection
 
                 Section("Playback") {
                     Toggle("Keep playing in the background", isOn: $backgroundAudio)
@@ -37,7 +48,7 @@ struct TubeSettingsView: View {
                     Label("No Mozilla telemetry, crash reports or experiments", systemImage: "chart.bar.xaxis")
                     Label("Firefox Sync and Mozilla accounts removed", systemImage: "person.crop.circle.badge.xmark")
                     Label("App components can't reach Mozilla's servers", systemImage: "network.slash")
-                    Label("Ads and trackers blocked by uBlock Origin Lite", systemImage: "shield.checkered")
+                    Label("Ads and trackers blocked by AdGuard", systemImage: "shield.checkered")
                     Label("Sponsor segments skipped by SponsorBlock", systemImage: "forward.end.alt")
                     LabeledContent("App requests refused this session", value: "\(refused)")
                 } header: {
@@ -79,6 +90,16 @@ struct TubeSettingsView: View {
                 TubeExtensionsHub()
                     .ignoresSafeArea()
             }
+            .sheet(item: $sheet, onDismiss: refreshSecurityState) { sheet in
+                TubeSettingsScreen(sheet: sheet)
+                    .ignoresSafeArea()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .adGuardStateDidChange)) { _ in
+                adGuardOn = AdGuardManager.shared.settings.isEnabled
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NordProxyManager.didChange)) { _ in
+                refreshSecurityState()
+            }
         }
     }
 
@@ -103,6 +124,65 @@ struct TubeSettingsView: View {
         } footer: {
             Text("Optional. Sign-in happens on Google's own page. Signed out, Following and Saved still work on this phone.")
         }
+    }
+
+    private var adBlockingSection: some View {
+        Section {
+            HStack(spacing: 12) {
+                Image(systemName: "shield.lefthalf.filled")
+                    .foregroundStyle(.green)
+                    .frame(width: 28, height: 28)
+                Button { sheet = .adGuard } label: {
+                    Text("AdGuard").foregroundStyle(.primary)
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                Toggle("AdGuard", isOn: $adGuardOn)
+                    .labelsHidden()
+                    .onChange(of: adGuardOn) { _, isOn in
+                        AdGuardManager.shared.updateSettings(recompile: false) { $0.isEnabled = isOn }
+                    }
+            }
+        } header: {
+            Text("Ad blocking")
+        } footer: {
+            Text("Built in, using AdGuard's filter lists. Tap AdGuard to choose lists, add your own rules "
+                 + "or update filters.")
+        }
+    }
+
+    private var securitySection: some View {
+        Section {
+            Button { sheet = .appLock } label: {
+                LabeledContent {
+                    Text(appLockOn ? "On" : "Off")
+                } label: {
+                    Label("App lock", systemImage: "lock")
+                }
+            }
+            .foregroundStyle(.primary)
+            if NordProxyManager.isSupported {
+                Button { sheet = .proxy } label: {
+                    LabeledContent {
+                        Text(proxyOn ? "On" : "Off")
+                    } label: {
+                        Label("NordVPN proxy", systemImage: "network.badge.shield.half.filled")
+                    }
+                }
+                .foregroundStyle(.primary)
+            }
+        } header: {
+            Text("Security")
+        } footer: {
+            Text("App lock asks for a PIN or Face ID when you return to the app. The proxy sends this app's "
+                 + "YouTube traffic through a NordVPN server you choose.")
+        }
+    }
+
+    private func refreshSecurityState() {
+        appLockOn = AppLockManager.shared.isEnabled
+        proxyOn = NordProxyManager.shared.store.isEnabled
+        adGuardOn = AdGuardManager.shared.settings.isEnabled
     }
 
     private var extensionsSection: some View {
@@ -166,6 +246,24 @@ struct TubeExtensionRow: View {
                 }
         }
     }
+}
+
+/// Ferret's own settings screens for AdGuard, App lock and the proxy, each with its own navigation bar.
+@available(iOS 18.0, *)
+struct TubeSettingsScreen: UIViewControllerRepresentable {
+    let sheet: TubeSettingsView.SettingsSheet
+
+    func makeUIViewController(context: Context) -> UINavigationController {
+        let root: UIViewController
+        switch sheet {
+        case .adGuard: root = AdGuardSettingsViewController(currentSiteURL: URL(string: "https://www.youtube.com"))
+        case .appLock: root = AppLockSettingsViewController()
+        case .proxy: root = NordProxySettingsViewController()
+        }
+        return UINavigationController(rootViewController: root)
+    }
+
+    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
 }
 
 /// Flameferret's extension manager (install from addons.mozilla.org, a link or a file).
