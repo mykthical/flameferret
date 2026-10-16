@@ -33381,7 +33381,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon_Alt_Ferret_Sunflower AppIcon_Alt_Ferret_MidnightGold AppIcon_Alt_Ferret_Oxblood AppIcon_Alt_Ferret_FieldGreen AppIcon_Alt_Ferret_Monochrome";
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon_Developer;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon_YouTubeX;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				ASSETCATALOG_OTHER_FLAGS = "--enable-icon-stack-fallback-generation=disabled";
 				CODE_SIGN_IDENTITY = "Apple Development";
