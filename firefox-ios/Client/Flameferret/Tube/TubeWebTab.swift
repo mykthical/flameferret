@@ -135,7 +135,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         webView?.evaluateJavaScript(js, in: nil, in: .page)
     }
 
-    struct PlaybackState: Decodable, Equatable {
+    struct PlaybackState: Equatable {
         var hasVideo: Bool
         var readyState: Int
         var paused: Bool
@@ -146,25 +146,42 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     func playbackState() async -> PlaybackState? {
         let js = """
             const v = document.querySelector('video');
-            const pick = sel => { const e = document.querySelector(sel); return e ? (e.innerText || '').trim() : ''; };
-            let message = pick('.ytp-error, ytm-player-error-message-renderer, .player-error-message-container, .ytp-error-content');
+            const body = document.body ? (document.body.innerText || document.body.textContent || '') : '';
+            let message = '';
+            for (const sel of ['.ytp-error', 'ytm-player-error-message-renderer', '.player-error-message-container']) {
+              const e = document.querySelector(sel);
+              if (e && (e.textContent || '').trim()) { message = e.textContent.trim(); break; }
+            }
             if (!message) {
-              const body = document.body ? document.body.innerText : '';
-              const walls = ["not a bot", "Sign in to confirm", "This video isn't available", "Video unavailable",
-                             "This video is private", "age-restricted", "Something went wrong"];
-              const hit = walls.find(w => body.includes(w));
-              if (hit) {
-                const line = body.split('\n').find(l => l.includes(hit));
-                message = (line || hit).trim();
+              const walls = ['not a bot', 'Sign in to confirm', 'Video unavailable', 'This video is private',
+                             'age-restricted', 'Something went wrong', 'An error occurred'];
+              for (const w of walls) {
+                if (body.indexOf(w) >= 0) {
+                  const lines = body.split(String.fromCharCode(10)).filter(l => l.indexOf(w) >= 0);
+                  message = (lines[0] || w).trim();
+                  break;
+                }
               }
             }
-            return JSON.stringify({ hasVideo: !!v, readyState: v ? v.readyState : 0, paused: v ? v.paused : true,
-                                    message: message ? message.slice(0, 200) : null });
+            return [v ? 1 : 0, v ? v.readyState : 0, (!v || v.paused) ? 1 : 0, message.slice(0, 200)];
             """
-        guard let webView,
-              let text = try? await webView.callAsyncJavaScript(js, contentWorld: .page) as? String,
-              let data = text.data(using: .utf8) else { return nil }
-        return try? JSONDecoder().decode(PlaybackState.self, from: data)
+        guard let webView else { return nil }
+        do {
+            let result = try await webView.callAsyncJavaScript(js, contentWorld: .page)
+            guard let values = result as? [Any], values.count == 4 else {
+                TubeEngine.log("playback: unexpected \(String(describing: result))")
+                return nil
+            }
+            let number = { (value: Any) -> Int in (value as? NSNumber)?.intValue ?? 0 }
+            let message = values[3] as? String ?? ""
+            let state = PlaybackState(hasVideo: number(values[0]) == 1, readyState: number(values[1]),
+                                      paused: number(values[2]) == 1, message: message.isEmpty ? nil : message)
+            TubeEngine.log("playback: \(state)")
+            return state
+        } catch {
+            TubeEngine.log("playback: failed \(error.localizedDescription)")
+            return nil
+        }
     }
 
     /// Asks the page to start the video (YouTube sometimes waits for a tap).

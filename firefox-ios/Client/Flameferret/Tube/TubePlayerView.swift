@@ -71,6 +71,7 @@ final class TubePlayerModel: ObservableObject {
     func watchPlayback() async {
         stall = nil
         let id = videoID
+        TubeEngine.log("watch: start \(id)")
         for attempt in 0..<8 {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             guard !Task.isCancelled, id == videoID, !webTab.showsFullPage else { return }
@@ -82,11 +83,13 @@ final class TubePlayerModel: ObservableObject {
             }
             if attempt == 1 { webTab.play() }
             if let message = state.message {
+                TubeEngine.log("watch: stalled with message")
                 stall = Stall(message: message)
                 return
             }
         }
         if let state = await webTab.playbackState(), state.readyState == 0 {
+            TubeEngine.log("watch: stalled without message")
             stall = Stall(message: nil)
         }
     }
@@ -155,9 +158,10 @@ struct TubePlayerView: View {
         }
         .onAppear { model.webTab.activate() }
         .task(id: model.videoID) {
+            async let watching: Void = model.watchPlayback()
             if model.details == nil { await model.loadDetails() }
+            await watching
         }
-        .task(id: model.videoID) { await model.watchPlayback() }
         .task {
             guard ProcessInfo.processInfo.arguments.contains("-openVideo") else { return }
             for _ in 0..<8 {
