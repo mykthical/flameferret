@@ -32,12 +32,13 @@ jobs:
 
       - name: Build for the simulator
         run: |
-          ./bootstrap.sh firefox
-          python3 scripts/flameferret-embed-js.py
-          mkdir -p build
+          mkdir -p out build
+          set -o pipefail
+          ./bootstrap.sh firefox 2>&1 | tee out/setup.log
+          python3 scripts/flameferret-embed-js.py 2>&1 | tee -a out/setup.log
           cd firefox-ios
           xcodebuild -resolvePackageDependencies -project Client.xcodeproj -scheme Fennec \
-            -onlyUsePackageVersionsFromResolvedFile
+            -onlyUsePackageVersionsFromResolvedFile 2>&1 | tee -a ../out/setup.log
           set +e
           xcodebuild build -project Client.xcodeproj -scheme Fennec -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
