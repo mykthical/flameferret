@@ -92,7 +92,10 @@ final class NordProxyStore {
     var route: NordProxyRoute {
         guard isEnabled else { return .direct }
         guard hasCredentials, let hostname, NordProxyCatalog.isNordHostname(hostname) else { return .blocked }
-        return .proxy(host: hostname, port: NordProxyCatalog.proxyPort, username: username, password: password)
+        return .proxy(host: NordProxyCatalog.proxyHostname(for: hostname),
+                      port: NordProxyCatalog.proxyPort,
+                      username: username,
+                      password: password)
     }
 
     func clearCredentials() {

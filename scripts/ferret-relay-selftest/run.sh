@@ -60,4 +60,17 @@ PROBE=$("$WORK/relaytest" probe 18089 user 'pa:ss!' 18080)
 PROBE=$("$WORK/relaytest" probe 18089 user wrong 18080)
 [ "$PROBE" = "PROBE=rejected(status: 407)" ] || fail "probe with wrong credentials: $PROBE"
 
+# A real NordVPN HTTPS proxy, through Apple's TLS stack: the certificate must verify and the server must ask
+# for credentials (407). Skipped if NordVPN's server list can't be fetched.
+HOST=$(curl -s --max-time 20 "https://api.nordvpn.com/v1/servers/recommendations?filters%5Bservers_technologies%5D%5Bidentifier%5D=proxy_ssl&limit=1" \
+    | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['hostname'])" 2>/dev/null || true)
+if [ -n "$HOST" ]; then
+    PROXY_HOST="${HOST%.nordvpn.com}.proxy.nordvpn.com"
+    PROBE=$("$WORK/relaytest" realprobe "$PROXY_HOST")
+    [ "$PROBE" = "PROBE=rejected(status: 407)" ] || fail "real NordVPN proxy $PROXY_HOST: $PROBE"
+    echo "Real NordVPN proxy $PROXY_HOST: TLS verified, credentials requested"
+else
+    echo "::warning title=Relay self-test::Couldn't fetch NordVPN's server list; skipped the live proxy check"
+fi
+
 echo "Relay self-test passed"

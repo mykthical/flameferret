@@ -51,6 +51,12 @@ final class NordProxyTests: XCTestCase {
         XCTAssertFalse(NordProxyCatalog.isNordHostname("a.b.nordvpn.com"))
     }
 
+    func testProxyConnectsToTheNameOnNordVPNsCertificate() {
+        XCTAssertEqual(NordProxyCatalog.proxyHostname(for: "us13814.nordvpn.com"), "us13814.proxy.nordvpn.com")
+        XCTAssertEqual(NordProxyCatalog.proxyHostname(for: "US13814.NordVPN.com"), "us13814.proxy.nordvpn.com")
+        XCTAssertEqual(NordProxyCatalog.proxyHostname(for: "us1.proxy.nordvpn.com"), "us1.proxy.nordvpn.com")
+    }
+
     func testURLsAskForHTTPSProxies() {
         XCTAssertTrue(NordProxyCatalog.recommendationsURL.absoluteString.contains("identifier%5D=proxy_ssl"))
         let country = NordProxyCatalog.serversURL(countryID: 228).absoluteString
@@ -121,7 +127,7 @@ final class NordProxyTests: XCTestCase {
         store.username = "  user \n"
         store.password = "pass"
         store.hostname = "us99.nordvpn.com"
-        XCTAssertEqual(store.route, .proxy(host: "us99.nordvpn.com", port: 89, username: "user", password: "pass"))
+        XCTAssertEqual(store.route, .proxy(host: "us99.proxy.nordvpn.com", port: 89, username: "user", password: "pass"))
         store.clearCredentials()
         XCTAssertFalse(store.hasCredentials)
     }

@@ -140,6 +140,14 @@ struct NordProxyCatalog: Sendable {
             .min { $0.load < $1.load }
     }
 
+    /// The name to connect to for a server's HTTPS proxy. NordVPN's proxy certificate is issued for
+    /// `*.proxy.nordvpn.com`, so `us1234.nordvpn.com` is reached as `us1234.proxy.nordvpn.com` (same address).
+    static func proxyHostname(for hostname: String) -> String {
+        let host = hostname.lowercased()
+        guard host.hasSuffix(".nordvpn.com"), !host.hasSuffix(".proxy.nordvpn.com") else { return host }
+        return String(host.dropLast(".nordvpn.com".count)) + ".proxy.nordvpn.com"
+    }
+
     /// Only connect to NordVPN's own hosts, whatever the API returns.
     static func isNordHostname(_ hostname: String) -> Bool {
         let host = hostname.lowercased()
