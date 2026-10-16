@@ -1,4 +1,4 @@
-name: Build Ferret
+name: Build YouTube X
 
 on:
   workflow_dispatch: {}
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: flameferret-${{ github.ref }}
+  group: youtubex-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -54,38 +54,38 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: Ferret-ipa
-          path: build/flameferret/Ferret.ipa
+          name: YouTubeX-ipa
+          path: build/flameferret/YouTubeX.ipa
           retention-days: 30
 
       - name: Publish IPA to the ipa-builds branch
         run: |
           cd build/flameferret
-          SIZE=$(stat -f%z Ferret.ipa)
+          SIZE=$(stat -f%z YouTubeX.ipa)
           echo "::notice title=IPA size::$((SIZE / 1048576)) MB"
           mkdir publish && cd publish
           if [ "$SIZE" -lt 99000000 ]; then
-            cp ../Ferret.ipa Ferret.ipa
+            cp ../YouTubeX.ipa YouTubeX.ipa
           else
-            split -b 45m ../Ferret.ipa Ferret.ipa.part-
+            split -b 45m ../YouTubeX.ipa YouTubeX.ipa.part-
           fi
-          shasum -a 256 ../Ferret.ipa | cut -d' ' -f1 > Ferret.ipa.sha256
+          shasum -a 256 ../YouTubeX.ipa | cut -d' ' -f1 > YouTubeX.ipa.sha256
           echo "${GITHUB_SHA}" > SOURCE_COMMIT
-          git init -q -b ipa-builds
+          git init -q -b youtubex-ipa-builds
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add -A
-          git commit -q -m "Ferret IPA from ${GITHUB_SHA::7}"
-          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ipa-builds
+          git commit -q -m "YouTube X IPA from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" youtubex-ipa-builds
 
       - name: Publish release
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "flameferret-${GITHUB_SHA::7}" build/flameferret/Ferret.ipa \
-            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest \
-            --title "Ferret (${GITHUB_SHA::7})" \
+          gh release create "youtubex-${GITHUB_SHA::7}" build/flameferret/YouTubeX.ipa \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false \
+            --title "YouTube X (${GITHUB_SHA::7})" \
             --notes "Unsigned IPA for sideloading with SideStore, AltStore or Sideloadly. See FLAMEFERRET.md."
 
       - name: Upload build log

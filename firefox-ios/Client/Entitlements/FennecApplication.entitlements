@@ -12,11 +12,11 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.mykthical.flameferret</string>
+		<string>group.com.mykthical.youtubex</string>
 	</array>
 	<key>keychain-access-groups</key>
 	<array>
-		<string>$(AppIdentifierPrefix)com.mykthical.flameferret</string>
+		<string>$(AppIdentifierPrefix)com.mykthical.youtubex</string>
 	</array>
 	<key>com.apple.developer.web-browser</key>
 	<true/>

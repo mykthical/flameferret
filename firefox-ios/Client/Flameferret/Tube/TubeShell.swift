@@ -110,10 +110,10 @@ enum TubeShell {
         return TubeUnsupportedViewController()
     }
 
-    /// Handles a link opened from another app (youtube.com, youtu.be, flameferret://open-url?url=...).
+    /// Handles a link opened from another app (youtube.com, youtu.be, youtubex://open-url?url=...).
     static func handleIncoming(_ url: URL) {
         var target = url
-        if url.scheme?.lowercased().hasPrefix("flameferret") == true,
+        if url.scheme?.lowercased().hasPrefix("youtubex") == true,
            let inner = URLComponents(url: url, resolvingAgainstBaseURL: false)?
             .queryItems?.first(where: { $0.name == "url" })?.value,
            let innerURL = URL(string: inner) {

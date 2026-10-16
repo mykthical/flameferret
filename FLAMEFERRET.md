@@ -6,7 +6,12 @@ Firefox (`.xpi`) and Chrome (`.crx`) extension packages and runs them on top of 
 It is not affiliated with or endorsed by Mozilla. "Firefox" is a trademark of the Mozilla Foundation;
 this build is renamed so it can't be confused with the real app and can be installed next to it.
 
-## The YouTube app
+## The YouTube app (YouTube X)
+
+On the `youtube-app` branch the app is built as **YouTube X** (bundle ID `com.mykthical.youtubex`,
+link scheme `youtubex://`), so it installs next to Ferret instead of replacing it. Its builds are
+published as `youtubex-…` releases (never marked latest) and to the `youtubex-ipa-builds` branch, so they
+don't replace Ferret's downloads. The IPA is `YouTubeX.ipa`.
 
 Ferret opens straight into a native YouTube client (Home, Following, Saved, Settings and Search),
 built on the RUTUBE X design (github.com/mykthical/rutube-lite) with the Ferret engine underneath.
