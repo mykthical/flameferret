@@ -11,9 +11,19 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 20
     steps:
-      - name: Inspect NordVPN HTTPS proxy certificates
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Relay self-test
         run: |
           mkdir -p out
+          set +e
+          ./scripts/ferret-relay-selftest/run.sh > out/selftest.txt 2>&1
+          echo "exit=$?" >> out/selftest.txt
+          cat out/selftest.txt
+
+      - name: Inspect NordVPN HTTPS proxy certificates
+        run: |
           curl -s "https://api.nordvpn.com/v1/servers/recommendations?filters%5Bservers_technologies%5D%5Bidentifier%5D=proxy_ssl&limit=3" \
             | python3 -c "import json,sys; [print(s['hostname']) for s in json.load(sys.stdin)]" > out/hosts.txt
           cat out/hosts.txt

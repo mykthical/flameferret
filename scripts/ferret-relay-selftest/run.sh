@@ -27,15 +27,20 @@ start_relay() {
     grep -o "PORT=[0-9a-z]*" "$WORK/$3.out" | cut -d= -f2
 }
 
-fail() { echo "::error title=Relay self-test::$1"; exit 1; }
+fail() { echo "::error title=Relay self-test::$1"; echo "SELFTEST FAILED: $1"; exit 1; }
+step() { echo "::notice title=Relay self-test::$1"; echo "STEP: $1"; }
 
+step "starting relay"
 GOOD=$(start_relay user 'pa:ss!' good)
+step "relay listening on $GOOD"
 [ "$GOOD" != "none" ] && [ -n "$GOOD" ] || fail "relay did not start"
 
-BODY=$(curl -s --noproxy '' --max-time 10 --proxytunnel -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/ok.txt)
+BODY=$(curl -s --noproxy '' --max-time 10 --proxytunnel -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/ok.txt) \
+    || fail "page through relay: curl exit $? (relay output: $(cat "$WORK/good.out"))"
 [ "$BODY" = "ferret-relay-ok" ] || fail "page through relay: got '$BODY'"
 
-curl -s --noproxy '' --max-time 30 --proxytunnel -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/big.bin -o "$WORK/big.out"
+curl -s --noproxy '' --max-time 30 --proxytunnel -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/big.bin -o "$WORK/big.out" \
+    || fail "8 MB download through relay: curl exit $?"
 cmp -s "$WORK/site/big.bin" "$WORK/big.out" || fail "8 MB download through relay was corrupted"
 
 for i in $(seq 1 12); do
@@ -47,7 +52,7 @@ for i in $(seq 1 12); do
     [ "$(cat "$WORK/p$i" 2>/dev/null)" = "ferret-relay-ok" ] || fail "parallel request $i failed"
 done
 
-CODE=$(curl -s --noproxy '' -o /dev/null -w "%{http_code}" --max-time 10 -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/ok.txt)
+CODE=$(curl -s --noproxy '' -o /dev/null -w "%{http_code}" --max-time 10 -x "http://127.0.0.1:$GOOD" http://127.0.0.1:18080/ok.txt || true)
 [ "$CODE" = "405" ] || fail "plain GET to the relay should get 405, got $CODE"
 
 BAD=$(start_relay user wrong bad)
@@ -55,6 +60,7 @@ if curl -s --noproxy '' --max-time 10 --proxytunnel -x "http://127.0.0.1:$BAD" h
     fail "wrong credentials still loaded the page"
 fi
 
+step "local checks passed; probing"
 PROBE=$("$WORK/relaytest" probe 18089 user 'pa:ss!' 18080)
 [ "$PROBE" = "PROBE=ok" ] || fail "probe with good credentials: $PROBE"
 PROBE=$("$WORK/relaytest" probe 18089 user wrong 18080)
@@ -62,7 +68,7 @@ PROBE=$("$WORK/relaytest" probe 18089 user wrong 18080)
 
 # A real NordVPN HTTPS proxy, through Apple's TLS stack: the certificate must verify and the server must ask
 # for credentials (407). Skipped if NordVPN's server list can't be fetched.
-HOST=$(curl -s --max-time 20 "https://api.nordvpn.com/v1/servers/recommendations?filters%5Bservers_technologies%5D%5Bidentifier%5D=proxy_ssl&limit=1" \
+HOST=$(curl -s --noproxy '' --max-time 20 "https://api.nordvpn.com/v1/servers/recommendations?filters%5Bservers_technologies%5D%5Bidentifier%5D=proxy_ssl&limit=1" \
     | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['hostname'])" 2>/dev/null || true)
 if [ -n "$HOST" ]; then
     PROXY_HOST="${HOST%.nordvpn.com}.proxy.nordvpn.com"
