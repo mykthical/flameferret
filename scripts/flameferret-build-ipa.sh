@@ -28,6 +28,10 @@ xcodebuild -resolvePackageDependencies \
     -scheme Fennec \
     -skipPackagePluginValidation
 
+# Ferret's alternate home screen icons (Settings → App Icon / Color Theme).
+ALT_ICONS="AppIcon_Alt_Ferret_Sunflower AppIcon_Alt_Ferret_MidnightGold AppIcon_Alt_Ferret_Oxblood"
+ALT_ICONS="$ALT_ICONS AppIcon_Alt_Ferret_FieldGreen AppIcon_Alt_Ferret_Monochrome"
+
 set +e
 xcodebuild build \
     -project Client.xcodeproj \
@@ -43,7 +47,7 @@ xcodebuild build \
     CODE_SIGN_IDENTITY="" \
     CODE_SIGN_ENTITLEMENTS="" \
     COMPILER_INDEX_STORE_ENABLE=NO \
-    ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES="" \
+    ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES="$ALT_ICONS" \
     ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS=NO \
     DEBUG_INFORMATION_FORMAT=dwarf \
     > "$ROOT/build/xcodebuild.log" 2>&1
@@ -54,6 +58,13 @@ APP="$DERIVED/Build/Products/Debug-iphoneos/Client.app"
 if [ $STATUS -ne 0 ] || [ ! -d "$APP" ]; then
     echo "Build failed; full log in build/xcodebuild.log" >&2
     grep -E "error:" "$ROOT/build/xcodebuild.log" | sort -u | head -60 >&2 || true
+    exit 1
+fi
+
+ALT_COUNT=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIcons:CFBundleAlternateIcons" "$APP/Info.plist" 2>/dev/null \
+    | grep -c "AppIcon_Alt_Ferret_" || true)
+if [ "$ALT_COUNT" -lt 5 ]; then
+    echo "::error title=App icons::Expected 5 alternate app icons in Info.plist, found $ALT_COUNT" >&2
     exit 1
 fi
 

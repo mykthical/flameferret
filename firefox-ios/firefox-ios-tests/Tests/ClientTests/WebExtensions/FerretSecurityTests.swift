@@ -28,6 +28,15 @@ final class FerretSecurityTests: XCTestCase {
         XCTAssertEqual(prefs.boolForKey(PrefsKeys.SearchSettings.showSearchSuggestions), true)
     }
 
+    // MARK: - PIN setup
+
+    @MainActor
+    func testPINScreenCoversSettingsWithoutReplacingIt() {
+        // Settings closes itself when its view disappears, which a .fullScreen presentation would cause.
+        let controller = AppLockViewController(mode: .create { _ in }, manager: AppLockManager.shared)
+        XCTAssertEqual(controller.modalPresentationStyle, .overFullScreen)
+    }
+
     // MARK: - HTTPS-First
 
     func testUpgradesPlainHTTP() {

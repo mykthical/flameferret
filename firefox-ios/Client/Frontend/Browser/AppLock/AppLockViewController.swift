@@ -48,7 +48,9 @@ final class AppLockViewController: UIViewController {
         self.mode = mode
         self.manager = manager
         super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .fullScreen
+        // Cover the screen without removing what's underneath: Settings treats its view disappearing as
+        // being closed, so a .fullScreen presentation would tear Settings down mid-setup.
+        modalPresentationStyle = .overFullScreen
     }
 
     required init?(coder: NSCoder) {
