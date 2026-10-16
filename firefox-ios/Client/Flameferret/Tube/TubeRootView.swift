@@ -66,11 +66,12 @@ struct TubeRootView: View {
     @ObservedObject private var library = TubeLibrary.shared
     @ObservedObject private var engine = TubeEngine.shared
     @ObservedObject private var router = TubeRouter.shared
+    @ObservedObject private var subscriptions = TubeSubscriptions.shared
 
     var body: some View {
         TabView(selection: $router.selection) {
             SwiftUI.Tab("Home", systemImage: "house", value: TubeAppTab.home) { TubeHomeView() }
-            SwiftUI.Tab("Following", systemImage: "person.2", value: TubeAppTab.following) { TubeFollowingView() }
+            SwiftUI.Tab("Subscriptions", systemImage: "play.square.stack", value: TubeAppTab.following) { TubeSubscriptionsView() }
             SwiftUI.Tab("Saved", systemImage: "bookmark", value: TubeAppTab.saved) { TubeSavedView() }
             SwiftUI.Tab("Settings", systemImage: "gearshape", value: TubeAppTab.settings) { TubeSettingsView() }
             SwiftUI.Tab(value: TubeAppTab.search, role: .search) { TubeSearchView() }
@@ -85,6 +86,12 @@ struct TubeRootView: View {
         .sheet(isPresented: $router.showSignIn) {
             TubeSignInView()
                 .environmentObject(engine)
+        }
+        .alert(subscriptions.lastError ?? "", isPresented: Binding(
+            get: { subscriptions.lastError != nil },
+            set: { if !$0 { subscriptions.lastError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
         }
         .task { applyLaunchArguments() }
     }

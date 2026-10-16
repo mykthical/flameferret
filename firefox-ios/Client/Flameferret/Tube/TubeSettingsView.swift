@@ -122,7 +122,7 @@ struct TubeSettingsView: View {
         } header: {
             Text("YouTube account")
         } footer: {
-            Text("Optional. Sign-in happens on Google's own page. Signed out, Following and Saved still work on this phone.")
+            Text("Optional. Sign-in happens on Google's own page. Needed for your subscriptions, recommendations and subscribing. Saved videos work either way.")
         }
     }
 

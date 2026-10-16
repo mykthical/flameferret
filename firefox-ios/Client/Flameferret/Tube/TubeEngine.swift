@@ -140,6 +140,9 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
                                                                        "payloadJSON": payloadJSON],
                                                            contentWorld: .page)
         Self.log("\(endpoint) -> \((result as? String)?.count ?? -1) chars")
+        if ProcessInfo.processInfo.arguments.contains("-dumpJSON"), let text = result as? String {
+            Self.dump(endpoint: endpoint, text: text)
+        }
         guard let text = result as? String, let data = text.data(using: .utf8),
               let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
             throw TubeError.badResponse("YouTube sent something unexpected")
@@ -151,6 +154,17 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
             isSignedIn = loggedIn
         }
         return json
+    }
+
+    /// CI simulator check only: saves raw responses to Documents/ffdump so parsers can be checked.
+    private static var dumpCount = 0
+    private static func dump(endpoint: String, text: String) {
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let folder = documents.appendingPathComponent("ffdump", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        dumpCount += 1
+        let name = "\(dumpCount)-\(endpoint.replacingOccurrences(of: "/", with: "_")).json"
+        try? text.write(to: folder.appendingPathComponent(name), atomically: true, encoding: .utf8)
     }
 
     func browse(_ browseID: String, params: String? = nil) async throws -> [String: Any] {
@@ -174,6 +188,7 @@ final class TubeEngine: NSObject, ObservableObject, WKNavigationDelegate {
         }
         await store.removeData(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), for: google)
         isSignedIn = false
+        TubeSubscriptions.shared.reset()
         sessionGeneration += 1
         reload()
     }

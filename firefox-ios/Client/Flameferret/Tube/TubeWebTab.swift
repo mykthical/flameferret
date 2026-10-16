@@ -123,6 +123,60 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         return result as? String ?? "no result"
     }
 
+    /// Whether YouTube's own page is shown instead of just the player.
+    @Published private(set) var showsFullPage = false
+
+    func setShowsFullPage(_ show: Bool) {
+        showsFullPage = show
+        webView?.scrollView.isScrollEnabled = show || mode == .page
+        let js = show
+            ? "window.__flameferretRawPage = true; const s = document.getElementById('flameferret-shell-css'); if (s) s.remove();"
+            : "window.__flameferretRawPage = false; location.reload();"
+        webView?.evaluateJavaScript(js, in: nil, in: .page)
+    }
+
+    struct PlaybackState: Decodable, Equatable {
+        var hasVideo: Bool
+        var readyState: Int
+        var paused: Bool
+        var message: String?
+    }
+
+    /// The player's state, plus any message YouTube shows instead of the video (errors, sign-in walls).
+    func playbackState() async -> PlaybackState? {
+        let js = """
+            const v = document.querySelector('video');
+            const pick = sel => { const e = document.querySelector(sel); return e ? (e.innerText || '').trim() : ''; };
+            let message = pick('.ytp-error, ytm-player-error-message-renderer, .player-error-message-container, .ytp-error-content');
+            if (!message) {
+              const body = document.body ? document.body.innerText : '';
+              const walls = ["not a bot", "Sign in to confirm", "This video isn't available", "Video unavailable",
+                             "This video is private", "age-restricted", "Something went wrong"];
+              const hit = walls.find(w => body.includes(w));
+              if (hit) {
+                const line = body.split('\n').find(l => l.includes(hit));
+                message = (line || hit).trim();
+              }
+            }
+            return JSON.stringify({ hasVideo: !!v, readyState: v ? v.readyState : 0, paused: v ? v.paused : true,
+                                    message: message ? message.slice(0, 200) : null });
+            """
+        guard let webView,
+              let text = try? await webView.callAsyncJavaScript(js, contentWorld: .page) as? String,
+              let data = text.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(PlaybackState.self, from: data)
+    }
+
+    /// Asks the page to start the video (YouTube sometimes waits for a tap).
+    func play() {
+        webView?.evaluateJavaScript("const v = document.querySelector('video'); if (v && v.paused) { v.play().catch(() => {}); }",
+                                    in: nil, in: .page)
+    }
+
+    func reload() {
+        webView?.reload()
+    }
+
     func pause() {
         webView?.evaluateJavaScript("document.querySelectorAll('video').forEach(v => v.pause());", in: nil, in: .page)
     }
@@ -175,7 +229,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
             (() => {
               if (!/(^|\\.)youtube\\.com$/.test(location.hostname)) { return; }
               const apply = () => {
-                if (document.getElementById('flameferret-shell-css')) { return; }
+                if (window.__flameferretRawPage || document.getElementById('flameferret-shell-css')) { return; }
                 const style = document.createElement('style');
                 style.id = 'flameferret-shell-css';
                 style.textContent = `\(escaped)`;
@@ -202,10 +256,13 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     private static let playerCSS = pageCSS + """
         html, body { background: #000 !important; overflow: hidden !important; }
         .watch-below-the-player, ytm-single-column-watch-next-results-renderer { visibility: hidden !important; }
-        #player-container-id, .player-container, #player-control-container {
+        #player-container-id, .player-container {
           position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
           width: 100vw !important; height: 100vh !important; padding: 0 !important; margin: 0 !important;
           z-index: 2147483000 !important; background: #000 !important;
+        }
+        #player-control-container, ytm-custom-control, .player-controls-background {
+          background: transparent !important;
         }
         #player, #movie_player, .html5-video-player, .html5-video-container, ytm-custom-control,
         .player-controls-content { width: 100% !important; height: 100% !important; }

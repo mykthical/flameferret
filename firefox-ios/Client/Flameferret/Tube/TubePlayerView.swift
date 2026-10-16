@@ -12,7 +12,14 @@ final class TubePlayerModel: ObservableObject {
     @Published private(set) var videoID: String
     @Published private(set) var details: TubeVideoDetails?
     @Published private(set) var error: String?
+    /// Set when the video still hasn't loaded a few seconds after opening; holds YouTube's message if it shows one.
+    @Published private(set) var stall: Stall?
+    @Published private(set) var comments: TubeCommentsModel?
     let webTab: TubeWebTab
+
+    struct Stall: Equatable {
+        var message: String?
+    }
 
     private let fallback: TubeVideo
 
@@ -24,6 +31,8 @@ final class TubePlayerModel: ObservableObject {
             guard let self, let id = TubeLinks.videoID(from: url.absoluteString), id != self.videoID else { return }
             self.videoID = id
             self.details = nil
+            self.comments = nil
+            self.stall = nil
             Task { await self.loadDetails() }
         }
     }
@@ -44,11 +53,47 @@ final class TubePlayerModel: ObservableObject {
             guard id == videoID else { return }
             details = TubeParser.videoDetails(from: json, videoID: id,
                                               fallback: id == fallback.id ? fallback : nil)
+            if let channelID = details?.video.channelID, let subscribed = TubeParser.subscribed(in: json) {
+                TubeSubscriptions.shared.record(channelID, subscribed: subscribed)
+            }
+            if let token = TubeParser.commentsToken(from: json) {
+                comments = TubeCommentsModel(token: token, countText: TubeParser.commentCountText(from: json))
+            }
             error = nil
             if let details { TubeLibrary.shared.recordWatch(details.video) }
         } catch {
             self.error = error.localizedDescription
         }
+    }
+
+    /// Watches the first seconds of playback. Nudges the player to start, and if nothing has loaded,
+    /// surfaces why instead of leaving a black box.
+    func watchPlayback() async {
+        stall = nil
+        let id = videoID
+        for attempt in 0..<8 {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard !Task.isCancelled, id == videoID, !webTab.showsFullPage else { return }
+            guard let state = await webTab.playbackState() else { continue }
+            if state.readyState > 0 {
+                stall = nil
+                if attempt == 1 && state.paused { webTab.play() }
+                if state.message == nil { return }
+            }
+            if attempt == 1 { webTab.play() }
+            if let message = state.message {
+                stall = Stall(message: message)
+                return
+            }
+        }
+        if let state = await webTab.playbackState(), state.readyState == 0 {
+            stall = Stall(message: nil)
+        }
+    }
+
+    func retry() {
+        stall = nil
+        webTab.reload()
     }
 
     func play(_ video: TubeVideo) {
@@ -72,8 +117,28 @@ struct TubePlayerView: View {
     var body: some View {
         VStack(spacing: 0) {
             TubeWebTabView(webTab: model.webTab)
-                .aspectRatio(16 / 9, contentMode: .fit)
+                .aspectRatio(model.webTab.showsFullPage ? nil : 16 / 9, contentMode: .fit)
+                .frame(maxHeight: model.webTab.showsFullPage ? .infinity : nil)
                 .background(Color.black)
+                .overlay(alignment: .bottom) {
+                    if let stall = model.stall, !model.webTab.showsFullPage {
+                        TubeStallBanner(stall: stall,
+                                        retry: { model.retry(); Task { await model.watchPlayback() } },
+                                        showPage: { model.webTab.setShowsFullPage(true) })
+                    }
+                }
+                .overlay(alignment: .topTrailing) {
+                    if model.webTab.showsFullPage {
+                        Button("Back to player") {
+                            model.webTab.setShowsFullPage(false)
+                            Task { await model.watchPlayback() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.small)
+                        .padding(10)
+                    }
+                }
             ScrollView {
                 details
                     .padding(.horizontal, 16)
@@ -92,6 +157,7 @@ struct TubePlayerView: View {
         .task(id: model.videoID) {
             if model.details == nil { await model.loadDetails() }
         }
+        .task(id: model.videoID) { await model.watchPlayback() }
         .task {
             guard ProcessInfo.processInfo.arguments.contains("-openVideo") else { return }
             for _ in 0..<8 {
@@ -134,6 +200,12 @@ struct TubePlayerView: View {
                 .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: 14))
             }
 
+            if let comments = model.comments {
+                TubeCommentsCard(model: comments, video: video, pause: { model.webTab.pause() })
+            } else if model.details != nil {
+                Text("Comments are turned off.").font(.footnote).foregroundStyle(.secondary)
+            }
+
             if let error = model.error, model.details == nil {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -171,12 +243,6 @@ struct TubePlayerView: View {
                         Label("SponsorBlock", systemImage: "forward.end.alt")
                     }
                 }
-                Button {
-                    model.webTab.pause()
-                    TubeRouter.shared.pageSheet = .init(url: video.watchURL)
-                } label: {
-                    Label("Comments", systemImage: "text.bubble")
-                }
             }
             .labelStyle(.titleAndIcon)
             .buttonStyle(.bordered)
@@ -206,7 +272,7 @@ struct TubeChannelRow: View {
             }
             .buttonStyle(.plain)
             Spacer()
-            TubeFollowButton(channel: channel)
+            TubeSubscribeButton(channel: channel)
         }
     }
 }
@@ -275,5 +341,32 @@ struct TubeSignInView: View {
             webTab.close()
             engine.didSignIn()
         }
+    }
+}
+
+@available(iOS 18.0, *)
+struct TubeStallBanner: View {
+    let stall: TubePlayerModel.Stall
+    let retry: () -> Void
+    let showPage: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(stall.message ?? "The video hasn't started.")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.white)
+                .lineLimit(3)
+            HStack(spacing: 8) {
+                Button("Try again", action: retry)
+                Button("Show YouTube page", action: showPage)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.capsule)
+            .controlSize(.small)
+            .tint(.white)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.black.opacity(0.75))
     }
 }

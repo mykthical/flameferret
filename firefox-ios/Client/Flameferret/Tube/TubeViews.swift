@@ -72,52 +72,26 @@ struct TubeErrorRow: View {
 @available(iOS 18.0, *)
 struct TubeHomeView: View {
     @StateObject private var feed = TubeFeed()
-    @StateObject private var followed = TubeFollowingFeed()
     @EnvironmentObject private var engine: TubeEngine
     @EnvironmentObject private var router: TubeRouter
-    @EnvironmentObject private var library: TubeLibrary
 
     var body: some View {
         NavigationStack(path: $router.homePath) {
-            Group {
-                if showsFollowed {
-                    List {
-                        ForEach(followed.videos) { video in
-                            NavigationLink(value: video) { TubeVideoRow(video: video) }
-                        }
-                    }
-                    .listStyle(.plain)
-                } else {
-                    TubeVideoList(feed: feed, emptyText: emptyText)
+            TubeVideoList(feed: feed, emptyText: emptyText)
+                .navigationTitle("Home")
+                .tubeDestinations()
+                .refreshable { await feed.load(.browse("FEwhat_to_watch", params: nil)) }
+                .task(id: engine.sessionGeneration) {
+                    await feed.load(.browse("FEwhat_to_watch", params: nil))
+                    await openForSimulatorCheck()
                 }
-            }
-            .navigationTitle("Home")
-            .tubeDestinations()
-            .refreshable { await load() }
-            .task(id: engine.sessionGeneration) {
-                await load()
-                await openForSimulatorCheck()
-            }
-        }
-    }
-
-    /// YouTube gives signed-out users no recommendations, so Home shows the newest videos from
-    /// channels followed in this app instead.
-    private var showsFollowed: Bool {
-        feed.videos.isEmpty && !followed.videos.isEmpty
-    }
-
-    private func load() async {
-        await feed.load(.browse("FEwhat_to_watch", params: nil))
-        if feed.videos.isEmpty, !library.following.isEmpty {
-            await followed.load(local: library.following, signedIn: false, engine: engine)
         }
     }
 
     private var emptyText: String {
         engine.isSignedIn
             ? "Nothing to show yet. Pull down to refresh."
-            : "Sign in from Settings for recommendations, or follow channels to see their newest videos here."
+            : "Sign in from Settings to see your recommendations, or use Search."
     }
 
     /// Used only by the CI simulator check: `-openFirstVideo` or `-openVideo <id>`.
@@ -192,83 +166,67 @@ struct TubeSearchView: View {
     }
 }
 
-// MARK: - Following
+// MARK: - Subscriptions
 
 @available(iOS 18.0, *)
 @MainActor
-final class TubeFollowingFeed: ObservableObject {
+final class TubeSubscriptionsFeed: ObservableObject {
     @Published var videos: [TubeVideo] = []
-    @Published var accountChannels: [TubeChannel] = []
+    @Published var channels: [TubeChannel] = []
     @Published var loading = false
     @Published var error: String?
 
-    /// Newest videos from YouTube subscriptions (when signed in) plus channels followed in this app.
-    func load(local: [TubeChannel], signedIn: Bool, engine: TubeEngine) async {
+    /// Newest videos and the channel list from the signed-in account's YouTube subscriptions.
+    func load(engine: TubeEngine) async {
+        guard engine.isSignedIn else {
+            videos = []
+            channels = []
+            return
+        }
         loading = true
         error = nil
         defer { loading = false }
-        var all: [TubeVideo] = []
-        if signedIn {
-            do {
-                all += TubeParser.page(from: try await engine.browse("FEsubscriptions")).videos
-            } catch {
-                self.error = error.localizedDescription
-            }
-            if let channels = try? await engine.browse("FEchannels") {
-                accountChannels = TubeParser.page(from: channels).channels
-            }
-        } else {
-            accountChannels = []
+        do {
+            videos = TubeParser.page(from: try await engine.browse("FEsubscriptions")).videos
+        } catch {
+            self.error = error.localizedDescription
         }
-        let channelTasks = local.map { channel in
-            Task { @MainActor () -> [TubeVideo] in
-                guard let json = try? await engine.browse(channel.id, params: TubeChannelView.videosTabParams) else {
-                    return []
-                }
-                return TubeParser.page(from: json).videos
-            }
+        if let json = try? await engine.browse("FEchannels") {
+            channels = TubeParser.page(from: json).channels
+            TubeSubscriptions.shared.recordAll(channels)
         }
-        for task in channelTasks {
-            all += await task.value
-        }
-        var seen = Set<String>()
-        let unique = all.filter { seen.insert($0.id).inserted }
-        let dated = unique.enumerated().sorted { lhs, rhs in
-            let l = lhs.element.approximateDate, r = rhs.element.approximateDate
-            switch (l, r) {
-            case let (l?, r?): return l > r
-            default: return lhs.offset < rhs.offset
-            }
-        }
-        videos = Array(dated.map(\.element).prefix(300))
     }
 }
 
 @available(iOS 18.0, *)
-struct TubeFollowingView: View {
+struct TubeSubscriptionsView: View {
     @EnvironmentObject private var library: TubeLibrary
     @EnvironmentObject private var engine: TubeEngine
     @EnvironmentObject private var router: TubeRouter
-    @StateObject private var feed = TubeFollowingFeed()
-
-    private var channels: [TubeChannel] {
-        var seen = Set<String>()
-        return (library.following + feed.accountChannels).filter { seen.insert($0.id).inserted }
-    }
+    @ObservedObject private var subscriptions = TubeSubscriptions.shared
+    @StateObject private var feed = TubeSubscriptionsFeed()
+    @State private var moving = false
 
     var body: some View {
         NavigationStack(path: $router.followingPath) {
             Group {
-                if channels.isEmpty && !engine.isSignedIn {
-                    TubeEmptyState(icon: "person.2",
-                                   text: "Follow channels to see their newest videos here. "
-                                       + "Your list stays on this phone. No account needed.")
+                if !engine.isSignedIn {
+                    VStack(spacing: 16) {
+                        TubeEmptyState(icon: "play.square.stack",
+                                       text: "Sign in to YouTube to see and manage your subscriptions.")
+                            .frame(maxHeight: 260)
+                        Button("Sign in to YouTube") { router.showSignIn = true }
+                            .buttonStyle(.borderedProminent)
+                            .buttonBorderShape(.capsule)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     List {
-                        if !channels.isEmpty {
+                        if !library.following.isEmpty { movePrompt }
+                        if !feed.channels.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 16) {
-                                    ForEach(channels) { channel in
+                                    ForEach(feed.channels) { channel in
                                         NavigationLink(value: channel) {
                                             VStack(spacing: 6) {
                                                 TubeAvatar(url: channel.avatarURL, size: 56)
@@ -289,22 +247,52 @@ struct TubeFollowingView: View {
                         }
                         if feed.loading && feed.videos.isEmpty {
                             HStack { Spacer(); ProgressView(); Spacer() }.listRowSeparator(.hidden)
+                        } else if !feed.loading && feed.videos.isEmpty && feed.error == nil {
+                            Text("Subscribe to channels to see their newest videos here.")
+                                .foregroundStyle(.secondary)
+                                .listRowSeparator(.hidden)
                         }
                     }
                     .listStyle(.plain)
-                    .refreshable { await reload() }
+                    .refreshable { await feed.load(engine: engine) }
                 }
             }
-            .navigationTitle("Following")
+            .navigationTitle("Subscriptions")
             .tubeDestinations()
-            .task(id: "\(library.following.map(\.id))-\(engine.sessionGeneration)-\(engine.isSignedIn)") {
-                await reload()
+            .task(id: "\(engine.sessionGeneration)-\(engine.isSignedIn)-\(subscriptions.generation)") {
+                await feed.load(engine: engine)
             }
         }
     }
 
-    private func reload() async {
-        await feed.load(local: library.following, signedIn: engine.isSignedIn, engine: engine)
+    /// Channels followed in earlier builds, kept on this phone, offered as real subscriptions once.
+    private var movePrompt: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("You followed \(library.following.count) channel\(library.following.count == 1 ? "" : "s") on this phone.")
+                .font(.subheadline.weight(.semibold))
+            Text(library.following.map(\.name).filter { !$0.isEmpty }.prefix(4).joined(separator: ", "))
+                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            HStack {
+                Button(moving ? "Subscribing…" : "Subscribe on YouTube") {
+                    Task {
+                        moving = true
+                        for channel in library.following {
+                            await subscriptions.set(channel.id, subscribed: true)
+                        }
+                        library.following = []
+                        moving = false
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                Button("Dismiss", role: .destructive) { library.following = [] }
+                    .buttonStyle(.bordered)
+            }
+            .buttonBorderShape(.capsule)
+            .controlSize(.small)
+            .disabled(moving)
+        }
+        .padding(.vertical, 6)
     }
 }
 
@@ -333,7 +321,7 @@ struct TubeChannelView: View {
                 if !stats.isEmpty {
                     Text(stats.joined(separator: " · ")).font(.subheadline).foregroundStyle(.secondary)
                 }
-                TubeFollowButton(channel: shown)
+                TubeSubscribeButton(channel: shown)
                 if let description = info?.description {
                     Text(description).font(.callout).foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -350,28 +338,10 @@ struct TubeChannelView: View {
         .refreshable { await feed.load(.browse(channel.id, params: Self.videosTabParams)) }
         .task {
             if !feed.loadedOnce { await feed.load(.browse(channel.id, params: Self.videosTabParams)) }
-            if let loaded = info?.channel { TubeLibrary.shared.refresh(loaded) }
+            if let raw = feed.rawFirstPage, let subscribed = TubeParser.subscribed(in: raw) {
+                TubeSubscriptions.shared.record(channel.id, subscribed: subscribed)
+            }
         }
-    }
-}
-
-@available(iOS 18.0, *)
-struct TubeFollowButton: View {
-    let channel: TubeChannel
-    @EnvironmentObject private var library: TubeLibrary
-
-    var body: some View {
-        let following = library.isFollowing(channel.id)
-        Button {
-            library.toggleFollow(channel)
-        } label: {
-            Label(following ? "Following" : "Follow",
-                  systemImage: following ? "checkmark" : "plus")
-        }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.capsule)
-        .tint(following ? Color.secondary : Color.accentColor)
-        .controlSize(.small)
     }
 }
 
@@ -481,10 +451,8 @@ struct TubeVideoRow: View {
                     : Label("Save", systemImage: "bookmark")
             }
             if let channel = video.channel {
-                Button { library.toggleFollow(channel) } label: {
-                    library.isFollowing(channel.id)
-                        ? Label("Unfollow \(channel.name)", systemImage: "person.badge.minus")
-                        : Label("Follow \(channel.name)", systemImage: "person.badge.plus")
+                Button { TubeRouter.shared.push(channel) } label: {
+                    Label("Go to \(channel.name)", systemImage: "person.crop.square")
                 }
             }
             ShareLink(item: video.shareURL) { Label("Share", systemImage: "square.and.arrow.up") }
