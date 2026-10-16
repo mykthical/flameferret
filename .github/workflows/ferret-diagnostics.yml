@@ -1,0 +1,46 @@
+name: Ferret diagnostics
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  nord-proxy-cert:
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - name: Inspect NordVPN HTTPS proxy certificates
+        run: |
+          mkdir -p out
+          curl -s "https://api.nordvpn.com/v1/servers/recommendations?filters%5Bservers_technologies%5D%5Bidentifier%5D=proxy_ssl&limit=3" \
+            | python3 -c "import json,sys; [print(s['hostname']) for s in json.load(sys.stdin)]" > out/hosts.txt
+          cat out/hosts.txt
+          for host in $(cat out/hosts.txt); do
+            echo "=== $host ===" >> out/certs.txt
+            echo | openssl s_client -connect "$host:89" -servername "$host" -showcerts 2>&1 | tee "out/$host.raw" \
+              | grep -E "^(depth|verify|Verify|Protocol|Cipher|---|Server certificate|subject=|issuer=)" >> out/certs.txt || true
+            awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' "out/$host.raw" > "out/$host.pem"
+            csplit -s -z -f "out/$host-cert-" "out/$host.pem" '/-----BEGIN CERTIFICATE-----/' '{*}' || true
+            for c in out/$host-cert-*; do
+              echo "--- $c ---" >> out/certs.txt
+              openssl x509 -in "$c" -noout -text 2>&1 | grep -E "Version|Serial|Signature Algorithm|Issuer:|Not Before|Not After|Subject:|Public-Key|DNS:|IP Address|Extended Key Usage|TLS Web|Basic Constraints|CA:|Key Usage|Digital|CT Precertificate|Signed Certificate Timestamp" >> out/certs.txt || true
+            done
+            echo "--- macOS trust evaluation (security verify-cert, ssl policy) ---" >> out/certs.txt
+            security verify-cert -c "out/$host-cert-00" -p ssl -s "$host" -v >> out/certs.txt 2>&1 || true
+            echo "--- curl over TLS to proxy ---" >> out/certs.txt
+            curl -sv --max-time 15 "https://$host:89/" -o /dev/null 2>&1 | grep -E "SSL|TLS|certificate|subject|issuer|expire|verify|error" >> out/certs.txt || true
+          done
+          cat out/certs.txt
+
+      - name: Push results to the diag branch
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+        run: |
+          cd out
+          git init -q -b diag
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com add -A
+          git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "Diagnostics" --allow-empty
+          git push -qf "https://x-access-token:${TOKEN}@github.com/${{ github.repository }}" diag
