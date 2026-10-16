@@ -1,0 +1,42 @@
+=== us13811.proxy.nordvpn.com ===
+DNS: 187.13.203.201    (plain: 187.13.203.201 )
+* (304) (IN), TLS handshake, CERT verify (15):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+*  subject: CN=*.proxy.nordvpn.com
+*  subjectAltName: host "us13811.proxy.nordvpn.com" matched cert's "*.proxy.nordvpn.com"
+*  SSL certificate verify ok.
+* using HTTP/1.x
+> GET / HTTP/1.1
+< HTTP/1.1 407 Proxy Authentication Required
+--- as an HTTPS proxy without credentials (expect 407) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407
+--- plain name with SNI/verification name set to proxy.nordvpn.com (curl --connect-to) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407
+=== us13814.proxy.nordvpn.com ===
+DNS: 187.13.203.237    (plain: 187.13.203.237 )
+* (304) (IN), TLS handshake, CERT verify (15):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+*  subject: CN=*.proxy.nordvpn.com
+*  subjectAltName: host "us13814.proxy.nordvpn.com" matched cert's "*.proxy.nordvpn.com"
+*  SSL certificate verify ok.
+* using HTTP/1.x
+> GET / HTTP/1.1
+< HTTP/1.1 407 Proxy Authentication Required
+--- as an HTTPS proxy without credentials (expect 407) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407
+--- plain name with SNI/verification name set to proxy.nordvpn.com (curl --connect-to) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407
+=== us13812.proxy.nordvpn.com ===
+DNS: 187.13.203.213    (plain: 187.13.203.213 )
+* (304) (IN), TLS handshake, CERT verify (15):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+*  subject: CN=*.proxy.nordvpn.com
+*  subjectAltName: host "us13812.proxy.nordvpn.com" matched cert's "*.proxy.nordvpn.com"
+*  SSL certificate verify ok.
+* using HTTP/1.x
+> GET / HTTP/1.1
+< HTTP/1.1 407 Proxy Authentication Required
+--- as an HTTPS proxy without credentials (expect 407) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407
+--- plain name with SNI/verification name set to proxy.nordvpn.com (curl --connect-to) ---
+connect=407 code=000 exit=56 err=CONNECT tunnel failed, response 407

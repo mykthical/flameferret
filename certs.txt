@@ -1,0 +1,135 @@
+=== us13811.nordvpn.com ===
+depth=2 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication Root R46
+verify return:1
+depth=1 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+verify return:1
+depth=0 CN=*.proxy.nordvpn.com
+verify return:1
+---
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN=*.proxy.nordvpn.com
+issuer=C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+---
+---
+---
+Protocol: TLSv1.3
+Verify return code: 0 (ok)
+---
+---
+---
+--- out/us13811.nordvpn.com-cert-* ---
+--- macOS trust evaluation (security verify-cert, ssl policy) ---
+***Error reading file out/us13811.nordvpn.com-cert-00
+--- curl over TLS to proxy ---
+* (304) (OUT), TLS handshake, Client hello (1):
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+* Server certificate:
+*  subject: CN=*.proxy.nordvpn.com
+*  expire date: Jan 15 23:59:59 2027 GMT
+*  subjectAltName does not match host name us13811.nordvpn.com
+* SSL: no alternative certificate subject name matches target host name 'us13811.nordvpn.com'
+=== us13814.nordvpn.com ===
+depth=2 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication Root R46
+verify return:1
+depth=1 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+verify return:1
+depth=0 CN=*.proxy.nordvpn.com
+verify return:1
+---
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN=*.proxy.nordvpn.com
+issuer=C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+---
+---
+---
+Protocol: TLSv1.3
+Verify return code: 0 (ok)
+---
+---
+---
+--- out/us13814.nordvpn.com-cert-* ---
+--- macOS trust evaluation (security verify-cert, ssl policy) ---
+***Error reading file out/us13814.nordvpn.com-cert-00
+--- curl over TLS to proxy ---
+* (304) (OUT), TLS handshake, Client hello (1):
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+* Server certificate:
+*  subject: CN=*.proxy.nordvpn.com
+*  expire date: Jan 15 23:59:59 2027 GMT
+*  subjectAltName does not match host name us13814.nordvpn.com
+* SSL: no alternative certificate subject name matches target host name 'us13814.nordvpn.com'
+=== us13812.nordvpn.com ===
+depth=2 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication Root R46
+verify return:1
+depth=1 C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+verify return:1
+depth=0 CN=*.proxy.nordvpn.com
+verify return:1
+---
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=CN=*.proxy.nordvpn.com
+issuer=C=GB, O=Sectigo Limited, CN=Sectigo Public Server Authentication CA DV R36
+---
+---
+---
+Protocol: TLSv1.3
+Verify return code: 0 (ok)
+---
+---
+---
+--- out/us13812.nordvpn.com-cert-* ---
+--- macOS trust evaluation (security verify-cert, ssl policy) ---
+***Error reading file out/us13812.nordvpn.com-cert-00
+--- curl over TLS to proxy ---
+* (304) (OUT), TLS handshake, Client hello (1):
+* (304) (IN), TLS handshake, Server hello (2):
+* (304) (IN), TLS handshake, Unknown (8):
+* (304) (IN), TLS handshake, Certificate (11):
+* (304) (IN), TLS handshake, CERT verify (15):
+* (304) (IN), TLS handshake, Finished (20):
+* (304) (OUT), TLS handshake, Finished (20):
+* SSL connection using TLSv1.3 / AEAD-CHACHA20-POLY1305-SHA256 / [blank] / UNDEF
+* Server certificate:
+*  subject: CN=*.proxy.nordvpn.com
+*  expire date: Jan 15 23:59:59 2027 GMT
+*  subjectAltName does not match host name us13812.nordvpn.com
+* SSL: no alternative certificate subject name matches target host name 'us13812.nordvpn.com'

@@ -1,0 +1,17 @@
+::notice title=Relay self-test::starting relay
+STEP: starting relay
+::notice title=Relay self-test::relay listening on 53086
+STEP: relay listening on 53086
+::notice title=Relay self-test::local checks passed; probing
+STEP: local checks passed; probing
+[relay] upstream 127.0.0.1:18089 state preparing
+[relay] upstream 127.0.0.1:18089 state ready
+[relay] upstream 127.0.0.1:18089 state preparing
+[relay] upstream 127.0.0.1:18089 state ready
+[relay] upstream us13811.proxy.nordvpn.com:89 state preparing
+[relay] upstream us13811.proxy.nordvpn.com:89 state ready
+Real NordVPN proxy us13811.proxy.nordvpn.com: TLS verified, credentials requested
+Relay self-test passed
+./scripts/ferret-relay-selftest/run.sh: line 88: 10667 Terminated: 15          ( cd "$WORK/site" && python3 -m http.server 18080 --bind 127.0.0.1 > /dev/null 2>&1 )
+./scripts/ferret-relay-selftest/run.sh: line 88: 10668 Terminated: 15          python3 "$HERE/fake_nord_proxy.py" 18089 user 'pa:ss!'
+exit=0
