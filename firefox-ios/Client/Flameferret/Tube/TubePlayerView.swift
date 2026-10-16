@@ -353,6 +353,12 @@ struct TubeStallBanner: View {
     let stall: TubePlayerModel.Stall
     let retry: () -> Void
     let showPage: () -> Void
+    @EnvironmentObject private var engine: TubeEngine
+
+    private var needsSignIn: Bool {
+        guard !engine.isSignedIn, let message = stall.message?.lowercased() else { return false }
+        return message.contains("sign in") || message.contains("not a bot")
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -361,6 +367,9 @@ struct TubeStallBanner: View {
                 .foregroundStyle(.white)
                 .lineLimit(3)
             HStack(spacing: 8) {
+                if needsSignIn {
+                    Button("Sign in") { TubeRouter.shared.showSignIn = true }
+                }
                 Button("Try again", action: retry)
                 Button("Show YouTube page", action: showPage)
             }
