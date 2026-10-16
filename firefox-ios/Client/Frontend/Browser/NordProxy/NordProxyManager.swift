@@ -4,11 +4,13 @@
 
 import Foundation
 import Network
+import UIKit
 import WebEngine
 import WebKit
 
 /// Sends Ferret's web traffic (normal and private tabs, extension pages) through a NordVPN HTTPS proxy,
-/// without a system-wide VPN. Needs iOS 17 for per-data-store proxies.
+/// without a system-wide VPN. WebKit is pointed at `NordProxyRelay` on 127.0.0.1, which makes the
+/// authenticated TLS connection to NordVPN. Needs iOS 17 for per-data-store proxies.
 @MainActor
 final class NordProxyManager {
     static let shared = NordProxyManager()
@@ -21,13 +23,15 @@ final class NordProxyManager {
 
     let store: NordProxyStore
     private let catalog: NordProxyCatalog
-    private let insightsFetch: (@Sendable (NordProxyRoute) async throws -> Data)?
+    private let insightsFetch: (@Sendable (NordProxyRoute, UInt16?) async throws -> Data)?
+    private let relay = NordProxyRelay()
+    private var relayPort: UInt16?
     private var countries: [NordPlace] = []
     private var serversByCountry: [Int: [NordProxyServer]] = [:]
 
     init(store: NordProxyStore = NordProxyStore(),
          catalog: NordProxyCatalog = NordProxyCatalog(),
-         insightsFetch: (@Sendable (NordProxyRoute) async throws -> Data)? = nil) {
+         insightsFetch: (@Sendable (NordProxyRoute, UInt16?) async throws -> Data)? = nil) {
         self.store = store
         self.catalog = catalog
         self.insightsFetch = insightsFetch
@@ -40,6 +44,13 @@ final class NordProxyManager {
         DefaultWKEngineConfigurationProvider.dataStoreObserver = { [weak self] dataStore in
             self?.apply(to: dataStore)
         }
+        // iOS can stop the relay's listener while Ferret is suspended; restart it when Ferret comes back.
+        _ = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
+                                                   object: nil,
+                                                   queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyEverywhere() }
+        }
+        applyEverywhere()
         if store.isEnabled && store.hostname == nil {
             Task { try? await self.refreshServer() }
         }
@@ -121,47 +132,115 @@ final class NordProxyManager {
         return servers
     }
 
-    /// Asks NordVPN, through the current route, which IP the traffic arrives from.
+    /// Checks the route step by step — settings, the NordVPN server and credentials, then a request through
+    /// Ferret's relay — and asks NordVPN which IP the traffic arrives from. Errors explain which step failed.
     func checkConnection() async throws -> NordConnectionInsight {
+        switch route {
+        case .direct:
+            break
+        case .blocked:
+            if !store.hasCredentials {
+                throw NordConnectionProblem("Add your NordVPN service username and password first.")
+            }
+            throw NordConnectionProblem("No NordVPN server is selected yet. Tap Find Another Server.")
+        case .proxy(let host, let port, let username, let password):
+            if insightsFetch == nil {
+                let upstream = NordProxyUpstream(host: host, port: port,
+                                                 authorization: NordProxyWire.basicAuthorization(username: username,
+                                                                                                 password: password))
+                try await Self.probe(upstream)
+            }
+            if relayPort == nil {
+                throw NordConnectionProblem("Ferret's proxy relay isn't running. Turn the proxy off and on again.")
+            }
+        }
         let fetch = insightsFetch ?? Self.fetchInsights
-        let data = try await fetch(route)
+        let data: Data
+        do {
+            data = try await fetch(route, relayPort)
+        } catch {
+            throw NordConnectionProblem("NordVPN accepted your credentials, but the test page couldn't load through "
+                                        + "Ferret's relay (\(error.localizedDescription)).")
+        }
         return try JSONDecoder().decode(NordConnectionInsight.self, from: data)
     }
 
+    /// Opens and closes one tunnel through the NordVPN server, to test the server and the credentials.
+    private static func probe(_ upstream: NordProxyUpstream) async throws {
+        let queue = DispatchQueue(label: "ferret.nordproxy.probe")
+        let result: Result<Void, NordProxyTunnelError> = await withCheckedContinuation { continuation in
+            NordProxyRelay.openTunnel(to: "api.nordvpn.com:443", through: upstream, queue: queue) { result in
+                switch result {
+                case .success(let (connection, _)):
+                    connection.cancel()
+                    continuation.resume(returning: .success(()))
+                case .failure(let error):
+                    continuation.resume(returning: .failure(error))
+                }
+            }
+        }
+        if case .failure(let error) = result {
+            throw NordConnectionProblem(error.explanation)
+        }
+    }
+
     private func applyEverywhere() {
+        if case let .proxy(host, port, username, password) = route {
+            let upstream = NordProxyUpstream(host: host, port: port,
+                                             authorization: NordProxyWire.basicAuthorization(username: username,
+                                                                                             password: password))
+            relay.start(upstream: upstream) { [weak self] port in
+                Task { @MainActor in self?.relayDidStart(port) }
+            }
+        } else {
+            relay.stop()
+            relayPort = nil
+        }
+        applyConfigurations()
+    }
+
+    private func relayDidStart(_ port: UInt16?) {
+        guard port != relayPort else { return }
+        relayPort = port
+        applyConfigurations()
+    }
+
+    private func applyConfigurations() {
         DefaultWKEngineConfigurationProvider.forEachDataStore { apply(to: $0) }
         NotificationCenter.default.post(name: Self.didChange, object: self)
     }
 
     private func apply(to dataStore: WKWebsiteDataStore) {
         guard #available(iOS 17.0, *) else { return }
-        dataStore.proxyConfigurations = Self.proxyConfigurations(for: route)
+        dataStore.proxyConfigurations = Self.proxyConfigurations(for: route, relayPort: relayPort)
     }
 
+    /// WebKit's proxy settings: none when off, Ferret's relay when on, and a dead end when the proxy is on but
+    /// can't be used yet (no credentials, server or relay), so pages fail instead of going out directly.
     @available(iOS 17.0, *)
-    nonisolated static func proxyConfigurations(for route: NordProxyRoute) -> [ProxyConfiguration] {
+    nonisolated static func proxyConfigurations(for route: NordProxyRoute, relayPort: UInt16?) -> [ProxyConfiguration] {
         switch route {
         case .direct:
             return []
-        case .blocked:
-            // A proxy nothing listens on, so pages fail to load instead of going out directly.
-            var configuration = ProxyConfiguration(httpCONNECTProxy: .hostPort(host: "127.0.0.1", port: 9))
-            configuration.allowFailover = false
-            return [configuration]
-        case let .proxy(host, port, username, password):
-            let endpoint = NWEndpoint.hostPort(host: NWEndpoint.Host(host),
-                                               port: NWEndpoint.Port(rawValue: port) ?? 89)
-            var configuration = ProxyConfiguration(httpCONNECTProxy: endpoint, tlsOptions: NWProtocolTLS.Options())
-            configuration.applyCredential(username: username, password: password)
-            configuration.allowFailover = false
-            return [configuration]
+        case .proxy where relayPort != nil:
+            return [localProxy(port: relayPort ?? 9)]
+        case .proxy, .blocked:
+            return [localProxy(port: 9)]
         }
     }
 
-    private static let fetchInsights: @Sendable (NordProxyRoute) async throws -> Data = { route in
+    @available(iOS 17.0, *)
+    nonisolated private static func localProxy(port: UInt16) -> ProxyConfiguration {
+        var configuration = ProxyConfiguration(httpCONNECTProxy: .hostPort(host: "127.0.0.1",
+                                                                         port: NWEndpoint.Port(rawValue: port) ?? 9))
+        configuration.allowFailover = false
+        return configuration
+    }
+
+    private static let fetchInsights: @Sendable (NordProxyRoute, UInt16?) async throws -> Data = { route, relayPort in
         let configuration = URLSessionConfiguration.ephemeral
         if #available(iOS 17.0, *) {
-            configuration.proxyConfigurations = proxyConfigurations(for: route)
+            configuration.proxyConfigurations = proxyConfigurations(for: route, relayPort: relayPort)
         }
         let session = URLSession(configuration: configuration)
         defer { session.finishTasksAndInvalidate() }
@@ -171,4 +250,14 @@ final class NordProxyManager {
         }
         return data
     }
+}
+
+struct NordConnectionProblem: LocalizedError {
+    let message: String
+
+    init(_ message: String) {
+        self.message = message
+    }
+
+    var errorDescription: String? { message }
 }

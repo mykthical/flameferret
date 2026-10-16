@@ -164,7 +164,7 @@ final class NordProxyTests: XCTestCase {
 
     @MainActor
     func testCheckConnectionReadsInsights() async throws {
-        let manager = NordProxyManager(store: makeStore(), catalog: catalog([:])) { _ in
+        let manager = NordProxyManager(store: makeStore(), catalog: catalog([:])) { _, _ in
             Data(#"{"ip":"203.0.113.9","country":"Germany","city":"Berlin","protected":true}"#.utf8)
         }
         let insight = try await manager.checkConnection()

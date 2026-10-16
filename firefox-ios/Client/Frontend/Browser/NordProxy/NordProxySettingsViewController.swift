@@ -59,6 +59,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
         field.clearButtonMode = .whileEditing
         field.returnKeyType = .done
         field.delegate = self
+        field.addTarget(self, action: #selector(credentialsEdited), for: .editingChanged)
         field.translatesAutoresizingMaskIntoConstraints = false
     }
 
@@ -191,8 +192,21 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
     // MARK: - UITextFieldDelegate
 
     func textFieldDidEndEditing(_ textField: UITextField) {
-        manager.setCredentials(username: usernameField.text ?? "", password: passwordField.text ?? "")
+        saveCredentials()
         rebuild()
+    }
+
+    /// Saves as you type, so the proxy never runs on stale credentials.
+    @objc
+    private func credentialsEdited() {
+        saveCredentials()
+    }
+
+    private func saveCredentials() {
+        let username = usernameField.text ?? ""
+        let password = passwordField.text ?? ""
+        guard username != manager.store.username || password != manager.store.password else { return }
+        manager.setCredentials(username: username, password: password)
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
@@ -208,6 +222,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
 
     @objc
     private func toggled(_ sender: UISwitch) {
+        saveCredentials()
         view.endEditing(true)
         let enabled = sender.isOn
         run { try await $0.setEnabled(enabled) }
@@ -244,6 +259,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
     }
 
     private func checkConnection() {
+        saveCredentials()
         isBusy = true
         rebuild()
         Task {
@@ -254,8 +270,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
                 message = (insight.protected ? "Protected by NordVPN." : "Not protected by NordVPN.")
                     + "\nIP address: \(insight.ip)" + (place.isEmpty ? "" : "\n\(place)")
             } catch {
-                message = "Couldn't reach NordVPN through the proxy. Check your service credentials or "
-                    + "find another server."
+                message = error.localizedDescription
             }
             isBusy = false
             rebuild()

@@ -94,7 +94,13 @@ The rest of your iPhone keeps its normal connection. Requires iOS 17 or later an
 2. Paste them into Ferret, turn the proxy on, and pick a country (or leave it on Fastest Available).
    After choosing a country you can narrow it to a region (state or province) and a city. Only places
    where NordVPN has proxy servers are listed, and Ferret uses the least busy server there.
-3. Tap **Check Connection** to confirm NordVPN sees the traffic as protected.
+3. Tap **Check Connection** to confirm NordVPN sees the traffic as protected. If something's wrong it says
+   which step failed: no credentials or server, can't reach the NordVPN server, NordVPN rejected the
+   credentials, or the test page couldn't load.
+
+How it works: WebKit sends traffic to a small relay inside Ferret on `127.0.0.1`, and the relay makes the
+encrypted, authenticated connection to the NordVPN server (port 89). `scripts/ferret-relay-selftest/run.sh`
+tests the relay end to end on macOS before every build.
 
 When the proxy is on but can't be used (missing credentials, no server yet), pages don't load rather than
 going out directly. Credentials are kept in the Keychain on this device only. Ferret's own background

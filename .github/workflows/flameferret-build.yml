@@ -32,6 +32,9 @@ jobs:
           sudo xcode-select -s "$XCODE/Contents/Developer"
           xcodebuild -version
 
+      - name: NordVPN relay self-test
+        run: ./scripts/ferret-relay-selftest/run.sh
+
       - name: Build IPA
         run: ./scripts/flameferret-build-ipa.sh
 
