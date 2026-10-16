@@ -647,6 +647,15 @@ extension BrowserViewController: WKNavigationDelegate {
 
         let shouldBlockExternalApps = profile.prefs.boolForKey(PrefsKeys.BlockOpeningExternalApps) ?? false
 
+        if navigationAction.targetFrame?.isMainFrame ?? true,
+           let secureURL = HTTPSFirstPolicy.shared.upgrade(url,
+                                                           method: navigationAction.request.httpMethod,
+                                                           in: webView) {
+            decisionHandler(.cancel)
+            webView.load(URLRequest(url: secureURL))
+            return
+        }
+
         if navigationAction.targetFrame?.isMainFrame ?? true, ["http", "https"].contains(url.scheme ?? "") {
             AdGuardManager.shared.prepareMainFrameNavigation(to: url, in: tab)
         }
@@ -1230,6 +1239,11 @@ extension BrowserViewController: WKNavigationDelegate {
             return
         }
 
+        if let insecureURL = HTTPSFirstPolicy.shared.fallback(after: error, in: webView) {
+            webView.load(URLRequest(url: insecureURL))
+            return
+        }
+
         if let url = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL {
             guard var errorPageURLComponents = URLComponents(
                 string: "\(InternalURL.baseUrl)/\(ErrorPageHandler.path)") else {
@@ -1318,6 +1332,7 @@ extension BrowserViewController: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, didCommit navigation: WKNavigation?) {
+        HTTPSFirstPolicy.shared.navigationCommitted(in: webView)
         guard let tab = tabManager[webView] else { return }
 
         // The main frame JSContext is available, and DOM parsing has begun.

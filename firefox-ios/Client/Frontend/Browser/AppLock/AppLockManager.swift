@@ -35,6 +35,7 @@ final class AppLockManager {
         static let biometrics = "FlameferretAppLockBiometrics"
         static let autoLock = "FlameferretAppLockAutoLock"
         static let installMarker = "FlameferretAppLockInstalled"
+        static let privacyScreen = "FerretPrivacyScreen"
     }
 
     let store: AppLockStore
@@ -59,6 +60,15 @@ final class AppLockManager {
     }
 
     var isEnabled: Bool { store.hasPIN }
+
+    /// Hide page content in the app switcher even without a PIN. On unless turned off.
+    var hidesInAppSwitcher: Bool {
+        get { defaults.object(forKey: DefaultsKey.privacyScreen) as? Bool ?? true }
+        set { defaults.set(newValue, forKey: DefaultsKey.privacyScreen) }
+    }
+
+    /// Whether Ferret covers its windows when it leaves the foreground.
+    private var coversContent: Bool { isEnabled || hidesInAppSwitcher }
 
     var usesBiometrics: Bool {
         get { defaults.object(forKey: DefaultsKey.biometrics) as? Bool ?? true }
@@ -93,16 +103,17 @@ final class AppLockManager {
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        guard isEnabled, let windowScene = scene as? UIWindowScene else { return }
+        guard coversContent, let windowScene = scene as? UIWindowScene else { return }
         showLockScreen(in: windowScene, promptBiometrics: false)
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        guard isEnabled else { return }
-        guard !isAuthenticatingWithBiometrics else { return }
-        if !isLocked { backgroundedAt = Date() }
-        if autoLock == .immediately { isLocked = true }
-        hasOfferedBiometrics = false
+        guard coversContent, !isAuthenticatingWithBiometrics else { return }
+        if isEnabled {
+            if !isLocked { backgroundedAt = Date() }
+            if autoLock == .immediately { isLocked = true }
+            hasOfferedBiometrics = false
+        }
         if let windowScene = scene as? UIWindowScene {
             showLockScreen(in: windowScene, promptBiometrics: false)
         }

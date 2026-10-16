@@ -69,6 +69,20 @@ AdGuard's libraries are licensed under GPL-3.0 (`SafariConverterLib`, `@adguard/
 The PIN is never stored. Ferret keeps a salted PBKDF2-SHA256 hash (200,000 rounds) in the
 Keychain, readable only on this device while it's unlocked.
 
+- **Hide Content in App Switcher** (on by default): covers your tabs whenever Ferret leaves the
+  foreground, even without a PIN, so the app switcher and iOS's saved snapshot show nothing.
+- **Always Use HTTPS** (on by default): every `http://` page load is upgraded to `https://`. If a site
+  can't do a secure connection, or redirects back to `http://`, Ferret uses `http://` for that site
+  until you quit. Local addresses (routers, printers, `localhost`) are left alone.
+
+**Private by default.** On a fresh install Ferret turns off everything that sends data off the device
+on its own: usage data, daily usage pings, crash reports and studies (to Mozilla), search suggestions
+(each keystroke to the search engine) and sponsored suggestions. Tracking protection starts on
+**Strict**. These are set once, so you can turn any of them back on in Settings.
+
+What can't be done on iOS: Safari's engine handles DNS itself, so there's no per-app DNS-over-HTTPS
+(turn on the NordVPN proxy to keep lookups away from your network), and screenshots can't be blocked.
+
 ## NordVPN proxy (Ferret only, no system VPN)
 
 Settings → Privacy → **NordVPN Proxy** sends Ferret's tabs (normal and private) and extension pages

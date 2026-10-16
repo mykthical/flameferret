@@ -15,6 +15,8 @@ final class AppLockSettingsViewController: UITableViewController {
         case autoLock
         case lockNow
         case dataProtection
+        case privacyScreen
+        case httpsFirst
     }
 
     private let manager: AppLockManager
@@ -48,7 +50,7 @@ final class AppLockSettingsViewController: UITableViewController {
             lock.append(.autoLock)
             lock.append(.lockNow)
         }
-        sections = [lock, [.dataProtection]]
+        sections = [lock, [.dataProtection], [.privacyScreen], [.httpsFirst]]
         tableView.reloadData()
     }
 
@@ -61,7 +63,12 @@ final class AppLockSettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return section == 0 ? "PIN Lock" : "Encryption"
+        switch section {
+        case 0: return "PIN Lock"
+        case 1: return "Encryption"
+        case 2: return "App Switcher"
+        default: return "Connections"
+        }
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
@@ -71,9 +78,19 @@ final class AppLockSettingsViewController: UITableViewController {
                     + "After 5 wrong PINs you'll have to wait before trying again."
                 : "Require a 6-digit PIN to open Ferret."
         }
-        return "Encrypts history, tabs, cookies, website data, saved passwords, extensions and ad-blocking data "
-            + "with a key that only exists while your iPhone is unlocked. Downloads and pages that are already "
-            + "open keep working in the background."
+        switch section {
+        case 1:
+            return "Encrypts history, tabs, cookies, website data, saved passwords, extensions and ad-blocking data "
+                + "with a key that only exists while your iPhone is unlocked. Downloads and pages that are already "
+                + "open keep working in the background."
+        case 2:
+            return manager.isEnabled
+                ? "Always on while a PIN is set."
+                : "Covers your tabs when you leave Ferret, so the app switcher doesn't show what you were viewing."
+        default:
+            return "Loads the secure https:// version of every site. If a site doesn't support it, Ferret uses "
+                + "http:// for that site until you quit."
+        }
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -106,6 +123,20 @@ final class AppLockSettingsViewController: UITableViewController {
             cell.accessoryView = makeSwitch(isOn: DataProtectionManager.isEnabled,
                                             action: #selector(dataProtectionToggled(_:)),
                                             label: "Protect Data While Locked")
+            cell.selectionStyle = .none
+        case .privacyScreen:
+            cell.textLabel?.text = "Hide Content in App Switcher"
+            let toggle = makeSwitch(isOn: manager.isEnabled || manager.hidesInAppSwitcher,
+                                    action: #selector(privacyScreenToggled(_:)),
+                                    label: "Hide Content in App Switcher")
+            toggle.isEnabled = !manager.isEnabled
+            cell.accessoryView = toggle
+            cell.selectionStyle = .none
+        case .httpsFirst:
+            cell.textLabel?.text = "Always Use HTTPS"
+            cell.accessoryView = makeSwitch(isOn: HTTPSFirstPolicy.shared.isEnabled,
+                                            action: #selector(httpsFirstToggled(_:)),
+                                            label: "Always Use HTTPS")
             cell.selectionStyle = .none
         }
         return cell
@@ -156,6 +187,16 @@ final class AppLockSettingsViewController: UITableViewController {
     @objc
     private func dataProtectionToggled(_ sender: UISwitch) {
         DataProtectionManager.setEnabled(sender.isOn)
+    }
+
+    @objc
+    private func privacyScreenToggled(_ sender: UISwitch) {
+        manager.hidesInAppSwitcher = sender.isOn
+    }
+
+    @objc
+    private func httpsFirstToggled(_ sender: UISwitch) {
+        HTTPSFirstPolicy.shared.isEnabled = sender.isOn
     }
 
     private func createPIN() {

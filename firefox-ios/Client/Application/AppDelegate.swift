@@ -97,6 +97,7 @@ class AppDelegate: UIResponder,
         // Then setup dependency container as it's needed for everything else
         DependencyHelper().bootstrapDependencies()
 
+        SecureDefaults.apply(to: profile.prefs)
         appLaunchUtil = AppLaunchUtil(profile: profile)
         appLaunchUtil?.setUpPreLaunchDependencies()
 
