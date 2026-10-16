@@ -19,7 +19,7 @@ python3 "$HERE/fake_nord_proxy.py" 18089 user 'pa:ss!' &
 sleep 2
 
 start_relay() {
-    "$WORK/relaytest" relay 18089 "$1" "$2" > "$WORK/$3.out" &
+    "$WORK/relaytest" relay 18089 "$1" "$2" > "$WORK/$3.out" 2> "$WORK/$3.log" &
     for _ in $(seq 1 50); do
         if grep -q "PORT=" "$WORK/$3.out" 2>/dev/null; then break; fi
         sleep 0.1
@@ -27,7 +27,12 @@ start_relay() {
     grep -o "PORT=[0-9a-z]*" "$WORK/$3.out" | cut -d= -f2
 }
 
-fail() { echo "::error title=Relay self-test::$1"; echo "SELFTEST FAILED: $1"; exit 1; }
+fail() {
+    echo "::error title=Relay self-test::$1"
+    echo "SELFTEST FAILED: $1"
+    for log in "$WORK"/*.log; do [ -f "$log" ] && { echo "--- $log"; tail -40 "$log"; }; done
+    exit 1
+}
 step() { echo "::notice title=Relay self-test::$1"; echo "STEP: $1"; }
 
 step "starting relay"

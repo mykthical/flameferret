@@ -4,6 +4,9 @@ import Network
 // Usage: relay <upstreamPort> <username> <password>   — runs the relay and prints PORT=<n>
 //        probe <upstreamPort> <username> <password>   — opens one tunnel and prints PROBE=ok or PROBE=<error>
 let args = CommandLine.arguments
+NordProxyRelay.debugLog = { message in
+    FileHandle.standardError.write(Data("[relay] \(message)\n".utf8))
+}
 let upstream = NordProxyUpstream(host: "127.0.0.1", port: UInt16(args[2]) ?? 0,
                                  authorization: NordProxyWire.basicAuthorization(username: args.count > 3 ? args[3] : "",
                                                                                  password: args.count > 4 ? args[4] : ""))

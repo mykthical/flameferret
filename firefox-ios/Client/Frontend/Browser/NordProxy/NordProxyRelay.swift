@@ -24,6 +24,8 @@ final class NordProxyRelay: @unchecked Sendable {
     private var readyHandlers: [@Sendable (UInt16?) -> Void] = []
     private let upstreamParameters: @Sendable () -> NWParameters
     static let timeout: TimeInterval = 20
+    /// Off in the app; the relay self-test turns it on to trace each tunnel.
+    nonisolated(unsafe) static var debugLog: (@Sendable (String) -> Void)?
 
     /// `upstreamParameters` is TLS to the NordVPN server; tests pass plain TCP to talk to a local fake.
     init(upstreamParameters: @escaping @Sendable () -> NWParameters = { NWParameters(tls: NWProtocolTLS.Options()) }) {
@@ -93,8 +95,11 @@ final class NordProxyRelay: @unchecked Sendable {
     // MARK: - Tunnels
 
     private func accept(_ client: NWConnection) {
+        Self.debugLog?("accepted \(client.endpoint)")
+        client.stateUpdateHandler = { state in Self.debugLog?("client state \(state)") }
         client.start(queue: queue)
         Self.readHeader(from: client, buffer: Data()) { [weak self] header, rest in
+            Self.debugLog?("client header \(header.map { String(decoding: $0, as: UTF8.self) } ?? "nil")")
             guard let self, let header, let target = NordProxyWire.connectTarget(fromHeader: header) else {
                 Self.fail(client, status: 405, reason: "Method Not Allowed")
                 return
@@ -104,6 +109,7 @@ final class NordProxyRelay: @unchecked Sendable {
                 return
             }
             Self.openTunnel(to: target, through: upstream, using: self.upstreamParameters(), queue: self.queue) { result in
+                Self.debugLog?("tunnel to \(target): \(result)")
                 switch result {
                 case .success(let (server, leftover)):
                     client.send(content: NordProxyWire.established, completion: .contentProcessed { _ in })
@@ -139,6 +145,7 @@ final class NordProxyRelay: @unchecked Sendable {
             if finisher.finish(.failure(.timedOut)) { server.cancel() }
         }
         server.stateUpdateHandler = { state in
+            debugLog?("upstream \(upstream.host):\(upstream.port) state \(state)")
             switch state {
             case .ready:
                 let request = NordProxyWire.connectRequest(target: target, authorization: upstream.authorization)
