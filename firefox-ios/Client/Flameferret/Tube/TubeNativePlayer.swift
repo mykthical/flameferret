@@ -78,11 +78,11 @@ enum TubeStreams {
     }
 
     private static func request(videoID: String, client: Client) async throws -> Stream? {
-        let locale = Locale.current
+        let parts = (Locale.preferredLanguages.first ?? "en-US").split(separator: "-").map(String.init)
         var clientContext: [String: Any] = [
             "clientName": client.name, "clientVersion": client.version,
-            "hl": locale.language.languageCode?.identifier ?? "en",
-            "gl": locale.region?.identifier ?? "US",
+            "hl": parts.first ?? "en",
+            "gl": (Locale.current as NSLocale).countryCode ?? "US",
             "utcOffsetMinutes": TimeZone.current.secondsFromGMT() / 60,
         ]
         clientContext.merge(client.extra) { current, _ in current }
@@ -105,7 +105,7 @@ enum TubeStreams {
         guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
         let playability = json["playabilityStatus"] as? [String: Any]
         let status = playability?["status"] as? String ?? "UNKNOWN"
-        TubeEngine.log("stream \(client.name): \(status)")
+        NSLog("[FFTube] stream %@: %@", client.name, status)
         guard status == "OK" else {
             throw Failure.unplayable(playability?["reason"] as? String ?? "This video can't be played here.")
         }
