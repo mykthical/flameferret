@@ -5,7 +5,7 @@
 import Common
 import UIKit
 
-/// Colors and type for Ferret's own screens (lock screen, AdGuard and extension settings),
+/// Colors and type for Culpeo's own screens (lock screen, AdGuard and extension settings),
 /// following the selected `FerretTheme` (navy, parchment and oxblood in Classic).
 enum FerretStyle {
     private static var style: FerretPalette.Style { FerretThemeStore.palette.style }
@@ -25,7 +25,7 @@ enum FerretStyle {
     /// Text drawn on `band`.
     static var onBand: UIColor { dynamic { $0.paperLight } dark: { $0.inkDark } }
 
-    /// Parchment background and navy accents for Ferret's own settings tables.
+    /// Parchment background and navy accents for Culpeo's own settings tables.
     @MainActor
     static func styleTable(_ tableView: UITableView) {
         tableView.backgroundColor = paper

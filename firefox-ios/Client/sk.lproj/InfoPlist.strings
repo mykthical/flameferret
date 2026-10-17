@@ -8,16 +8,16 @@
 "New Tab" = "Nová karta";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret môže použiť váš fotoaparát na skenovanie QR kódov alebo na vytvorenie fotografií či videa.";
+"NSCameraUsageDescription" = "Culpeo môže použiť váš fotoaparát na skenovanie QR kódov alebo na vytvorenie fotografií či videa.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret vyžaduje Face ID na prístup k vašim uloženým heslám a spôsobom platby.";
+"NSFaceIDUsageDescription" = "Culpeo vyžaduje Face ID na prístup k vašim uloženým heslám a spôsobom platby.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Stránky, ktoré navštevujete, môžu žiadať prezradiť vašu polohu.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Ferret používa váš mikrofón na nahrávanie zvuku.";
+"NSMicrophoneUsageDescription" = "Culpeo používa váš mikrofón na nahrávanie zvuku.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Toto vám umožňuje ukladať fotky.";

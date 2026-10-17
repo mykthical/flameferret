@@ -145,7 +145,7 @@ extension WebExtensionManager {
             }
             reply(nil, nil)
         default:
-            reply(nil, "\(api) is not supported in Ferret")
+            reply(nil, "\(api) is not supported in Culpeo")
         }
     }
 
@@ -363,7 +363,7 @@ extension WebExtensionManager {
         case "windows.getCurrent":
             reply(windowInfo(), nil)
         default:
-            reply(nil, "\(api) is not supported in Ferret")
+            reply(nil, "\(api) is not supported in Culpeo")
         }
     }
 
@@ -494,7 +494,7 @@ extension WebExtensionManager {
         case "scripting.getRegisteredContentScripts":
             reply(registeredContentScripts[webExtension.uuid] ?? [], nil)
         default:
-            reply(nil, "\(api) is not supported in Ferret")
+            reply(nil, "\(api) is not supported in Culpeo")
         }
     }
 
@@ -753,7 +753,7 @@ extension WebExtensionManager {
             reply([["url": (tab.webView?.url ?? tab.url)?.absoluteString ?? "", "parentFrameId": -1,
                     "errorOccurred": false, "frameId": 0]], nil)
         default:
-            reply(nil, "\(api) is not supported in Ferret")
+            reply(nil, "\(api) is not supported in Culpeo")
         }
     }
 

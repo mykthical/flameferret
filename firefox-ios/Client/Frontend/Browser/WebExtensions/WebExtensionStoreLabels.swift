@@ -4,7 +4,7 @@
 
 import WebKit
 
-/// Labels add-ons on addons.mozilla.org with whether they'll work in Ferret: a badge next to every
+/// Labels add-ons on addons.mozilla.org with whether they'll work in Culpeo: a badge next to every
 /// add-on link, and a banner with the reasons on each add-on's page.
 @MainActor
 final class WebExtensionStoreLabels: NSObject, WKScriptMessageHandlerWithReply {
@@ -38,7 +38,7 @@ final class WebExtensionStoreLabels: NSObject, WKScriptMessageHandlerWithReply {
     }
 
     /// Runs only on addons.mozilla.org. Looks each add-on up in the store's own API (same origin), asks
-    /// Ferret for a verdict, and keeps up with the store's single-page navigation.
+    /// Culpeo for a verdict, and keeps up with the store's single-page navigation.
     static let script = #"""
     (function () {
       if (location.hostname !== "addons.mozilla.org" || window.__ferretStoreLabels) { return; }

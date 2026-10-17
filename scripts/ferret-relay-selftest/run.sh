@@ -1,5 +1,5 @@
 #!/bin/bash
-# End-to-end test of Ferret's NordVPN relay on macOS: real Network.framework relay code, a fake
+# End-to-end test of Culpeo's NordVPN relay on macOS: real Network.framework relay code, a fake
 # credential-checking proxy, and curl traffic through it. Run from the repository root.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"

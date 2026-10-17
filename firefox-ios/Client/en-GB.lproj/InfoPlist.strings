@@ -8,22 +8,22 @@
 "New Tab" = "New Tab";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret can use your camera to scan QR codes or take photos and video.";
+"NSCameraUsageDescription" = "Culpeo can use your camera to scan QR codes or take photos and video.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret requires Face ID to access your saved passwords and payment methods.";
+"NSFaceIDUsageDescription" = "Culpeo requires Face ID to access your saved passwords and payment methods.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Web sites you visit may request your location.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Ferret uses your microphone to record and upload audio.";
+"NSMicrophoneUsageDescription" = "Culpeo uses your microphone to record and upload audio.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "This lets you save photos.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "This lets Ferret transcribe your audio.";
+"NSSpeechRecognitionUsageDescription" = "This lets Culpeo transcribe your audio.";
 
 /* (No Comment) */
 "Scan QR Code" = "Scan QR Code";

@@ -2,7 +2,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
-"""Regenerates Ferret's in-app brand artwork (logos, wordmark, illustrations).
+"""Regenerates Culpeo's in-app brand artwork (logos, wordmark, illustrations).
 
 Requires: pip install cairosvg fonttools pillow. Run from the repository root.
 """
@@ -159,7 +159,7 @@ def main():
               asset(f"{kit}/firefoxLoader.imageset/firefoxLoader.pdf"))
 
     # Wordmark next to the home header logo (template-rendered, so drawn in black).
-    width, group = wordmark("FERRET", 20, "#000000", tracking=0.12)
+    width, group = wordmark("CULPEO", 20, "#000000", tracking=0.12)
     word_svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="26" '
                 f'viewBox="0 -1 {width} 26">{group}</svg>')
     write_pdf(word_svg, asset(f"{client}/fxHomeHeaderLogoText.imageset/fxHomeHeaderLogoText.pdf"))

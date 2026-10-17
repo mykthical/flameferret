@@ -16,7 +16,7 @@ enum WebExtensionArchiveError: LocalizedError {
         case .notAnArchive:
             return "This file isn't a valid extension package (.xpi, .zip or .crx)."
         case .unsupportedCompression(let name):
-            return "\(name) uses a compression method Ferret can't read."
+            return "\(name) uses a compression method Culpeo can't read."
         case .corruptEntry(let name):
             return "\(name) inside the package is damaged."
         case .unsafePath(let name):

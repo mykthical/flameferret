@@ -78,6 +78,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>$(MOZ_PUBLIC_URL_SCHEME)</string>
+				<string>ferret</string>
 				<string>$(MOZ_INTERNAL_URL_SCHEME)</string>
 				<string>http</string>
 				<string>https</string>
@@ -134,15 +135,15 @@
 		<true/>
 	</dict>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>This lets Ferret transcribe your audio.</string>
+	<string>This lets Culpeo transcribe your audio.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Ferret can use your camera to scan QR codes or take photos and video.</string>
+	<string>Culpeo can use your camera to scan QR codes or take photos and video.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Ferret requires Face ID to access your saved passwords and payment methods.</string>
+	<string>Culpeo requires Face ID to access your saved passwords and payment methods.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Websites you visit may request your location.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Ferret uses your microphone to record and upload audio.</string>
+	<string>Culpeo uses your microphone to record and upload audio.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>This lets you save photos.</string>
 	<key>NSSupportsLiveActivities</key>

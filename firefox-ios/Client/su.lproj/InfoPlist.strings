@@ -5,10 +5,10 @@
 "New Tab" = "Tab Anyar";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret can use your camera to scan QR codes or take photos and video.";
+"NSCameraUsageDescription" = "Culpeo can use your camera to scan QR codes or take photos and video.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret butuh Face ID pikeun ngaksés sandi kedap nu disimpen jeung cara mayar.";
+"NSFaceIDUsageDescription" = "Culpeo butuh Face ID pikeun ngaksés sandi kedap nu disimpen jeung cara mayar.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Raramatloka nu disorang ku anjeun sigana ménta lokasi anjeun.";

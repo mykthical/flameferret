@@ -6,7 +6,7 @@ import Common
 import Foundation
 import UIKit
 
-/// Ferret's home screen icons. Each has light, dark and tinted versions and a matching `FerretTheme`.
+/// Culpeo's home screen icons. Each has light, dark and tinted versions and a matching `FerretTheme`.
 enum AppIcon: String, CaseIterable {
     /// The default icon: parchment, navy and oxblood.
     case regular

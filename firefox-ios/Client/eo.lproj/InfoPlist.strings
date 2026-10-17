@@ -8,10 +8,10 @@
 "New Tab" = "Nova langeto";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret povas uzi vian filmilon por skani kodojn QR, foti aŭ filmi.";
+"NSCameraUsageDescription" = "Culpeo povas uzi vian filmilon por skani kodojn QR, foti aŭ filmi.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret postulas Face ID por aliri viajn konservitajn legitimilojn kaj pagmetodojn.";
+"NSFaceIDUsageDescription" = "Culpeo postulas Face ID por aliri viajn konservitajn legitimilojn kaj pagmetodojn.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Retejoj vizititaj de vi povas peti vian lokon.";
@@ -23,7 +23,7 @@
 "NSPhotoLibraryAddUsageDescription" = "Tio ĉi permesas al vi konservi fotojn.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Tio permesas al Ferret transskribi vian voĉon.";
+"NSSpeechRecognitionUsageDescription" = "Tio permesas al Culpeo transskribi vian voĉon.";
 
 /* (No Comment) */
 "Scan QR Code" = "Skani kodon QR";

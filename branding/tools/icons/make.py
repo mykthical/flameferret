@@ -24,7 +24,7 @@ def icon(c):
         s+=f'<circle cx="50" cy="44" r="26" fill="#0057B7"/>'
     s+=f'<rect x="0" y="80" width="100" height="20" fill="{c["band"]}"/>'
     if c['stripe']: s+=f'<rect x="0" y="77" width="100" height="2" fill="{c["stripe"]}"/>'
-    s+=globe(50,44,25 if not c.get('extra') else 21,c['globe'],2.2 if not c.get('extra') else 2.0)+text_path('FERRET',50,93.6,7.2,c['text'])
+    s+=globe(50,44,25 if not c.get('extra') else 21,c['globe'],2.2 if not c.get('extra') else 2.0)+text_path('CULPEO',50,93.6,7.2,c['text'])
     return s
 from PIL import Image, ImageDraw, ImageFont
 for k,c in O.items():

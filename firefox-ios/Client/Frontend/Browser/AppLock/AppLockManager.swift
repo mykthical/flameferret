@@ -67,7 +67,7 @@ final class AppLockManager {
         set { defaults.set(newValue, forKey: DefaultsKey.privacyScreen) }
     }
 
-    /// Whether Ferret covers its windows when it leaves the foreground.
+    /// Whether Culpeo covers its windows when it leaves the foreground.
     private var coversContent: Bool { isEnabled || hidesInAppSwitcher }
 
     var usesBiometrics: Bool {
@@ -200,7 +200,7 @@ final class AppLockManager {
         }
         isAuthenticatingWithBiometrics = true
         context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics,
-                               localizedReason: "Unlock Ferret") { success, _ in
+                               localizedReason: "Unlock Culpeo") { success, _ in
             Task { @MainActor in
                 self.isAuthenticatingWithBiometrics = false
                 completion(success)

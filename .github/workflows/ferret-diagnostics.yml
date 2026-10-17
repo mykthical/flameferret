@@ -1,4 +1,4 @@
-name: Ferret diagnostics
+name: Culpeo diagnostics
 
 on:
   workflow_dispatch: {}

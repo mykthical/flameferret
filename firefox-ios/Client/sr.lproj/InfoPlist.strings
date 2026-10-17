@@ -8,22 +8,22 @@
 "New Tab" = "Нови језичак";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret може користити вашу камеру за скенирање КР кодова, прављење фотографија и снимање видео записа.";
+"NSCameraUsageDescription" = "Culpeo може користити вашу камеру за скенирање КР кодова, прављење фотографија и снимање видео записа.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret захтева Face ID за приступ вашим сачуваним лозинкама и начинима плаћања.";
+"NSFaceIDUsageDescription" = "Culpeo захтева Face ID за приступ вашим сачуваним лозинкама и начинима плаћања.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "Веб странице које посећујете могу захтевати вашу локацију.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Ferret користи ваш микрофон за снимање и отпремање звука.";
+"NSMicrophoneUsageDescription" = "Culpeo користи ваш микрофон за снимање и отпремање звука.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Ово вам омогућава да сачувате фотографије.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Ово омогућава Ferret-у да транскрибује ваш звук.";
+"NSSpeechRecognitionUsageDescription" = "Ово омогућава Culpeo-у да транскрибује ваш звук.";
 
 /* (No Comment) */
 "Scan QR Code" = "Скенирај КР код";

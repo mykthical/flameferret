@@ -26,7 +26,7 @@ function __flameferretInstall(config, mode) {
   }
 
   function call(api, args) {
-    if (!bridge) { return Promise.reject(new Error("Flameferret extension bridge unavailable")); }
+    if (!bridge) { return Promise.reject(new Error("Culpeo extension bridge unavailable")); }
     return bridge.postMessage({
       api: api,
       args: clone(args || []),
@@ -279,7 +279,7 @@ function __flameferretInstall(config, mode) {
     getManifest: noWrap(function () { return clone(manifest); }),
     getPlatformInfo: function () { return Promise.resolve({ os: "ios", arch: "arm64", nacl_arch: "arm" }); },
     getBrowserInfo: function () {
-      return Promise.resolve({ name: "Ferret", vendor: "Ferret", version: config.appVersion, buildID: config.appVersion });
+      return Promise.resolve({ name: "Culpeo", vendor: "Culpeo", version: config.appVersion, buildID: config.appVersion });
     },
     sendMessage: function () {
       const parsed = parseSendMessageArgs(Array.prototype.slice.call(arguments));
@@ -506,7 +506,7 @@ function __flameferretInstall(config, mode) {
   const webRequestEvent = function () {
     return {
       addListener: function () {
-        console.warn("[Flameferret] webRequest listeners can't observe requests on iOS; use declarativeNetRequest.");
+        console.warn("[Culpeo] webRequest listeners can't observe requests on iOS; use declarativeNetRequest.");
       },
       removeListener: function () {},
       hasListener: function () { return false; },

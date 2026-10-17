@@ -8,22 +8,22 @@
 "New Tab" = "Új lap";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "A Ferret használhatja a kameráját, hogy QR-kódokat olvasson le, vagy fényképeket és videókat készítsen.";
+"NSCameraUsageDescription" = "A Culpeo használhatja a kameráját, hogy QR-kódokat olvasson le, vagy fényképeket és videókat készítsen.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "A Ferret a Face ID-t igényli a mentett jelszavak és a fizetési módok eléréséhez.";
+"NSFaceIDUsageDescription" = "A Culpeo a Face ID-t igényli a mentett jelszavak és a fizetési módok eléréséhez.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "A meglátogatott webhelyek kérhetik az Ön helyét.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "A Ferret a mikrofonját használja, hogy hangokat vegyen fel és töltsön fel.";
+"NSMicrophoneUsageDescription" = "A Culpeo a mikrofonját használja, hogy hangokat vegyen fel és töltsön fel.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "Ezzel lementheti a képeket.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "Ez lehetővé teszi, hogy a Ferret leiratozza az Ön hangját.";
+"NSSpeechRecognitionUsageDescription" = "Ez lehetővé teszi, hogy a Culpeo leiratozza az Ön hangját.";
 
 /* (No Comment) */
 "Scan QR Code" = "QR-kód leolvasása";

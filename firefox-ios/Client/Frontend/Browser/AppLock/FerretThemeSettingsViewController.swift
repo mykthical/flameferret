@@ -48,7 +48,7 @@ final class FerretThemeSettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         return section == 0
-            ? "Changes colors throughout Ferret, in light and dark mode and in private browsing."
+            ? "Changes colors throughout Culpeo, in light and dark mode and in private browsing."
             : "iOS will confirm the change. You can also pick any icon under Settings → App Icon."
     }
 

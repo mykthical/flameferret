@@ -34,7 +34,7 @@ def icon(t):
     c=THEMES[t]
     return (f'<rect width="100" height="100" fill="{c["bg"]}"/>'
             f'<rect x="0" y="80" width="100" height="20" fill="{c["band"]}"/><rect x="0" y="77" width="100" height="2" fill="{c["stripe"]}"/>'
-            + globe(50,44,25,c['globe'],2.2) + text_path('FERRET',50,93.6,7.2,c['text']))
+            + globe(50,44,25,c['globe'],2.2) + text_path('CULPEO',50,93.6,7.2,c['text']))
 def logo(t):
     c=THEMES[t]
     return globe(50,50,46,c['globe'],4)

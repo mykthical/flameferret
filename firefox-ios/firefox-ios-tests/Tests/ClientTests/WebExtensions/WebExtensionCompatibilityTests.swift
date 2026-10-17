@@ -51,7 +51,7 @@ final class WebExtensionCompatibilityTests: XCTestCase {
     func testThemesAreNotAvailable() {
         let report = WebExtensionCompatibility.assess(type: "statictheme", permissions: [])
         XCTAssertEqual(report.verdict, .unsupportedType)
-        XCTAssertEqual(report.verdict.label, "Not available in Ferret")
+        XCTAssertEqual(report.verdict.label, "Not available in Culpeo")
     }
 
     func testReadsStoreJSON() {
@@ -78,7 +78,7 @@ final class WebExtensionCompatibilityTests: XCTestCase {
                                                        "permissions": ["webRequestBlocking"]])
         let report = WebExtensionCompatibility.assess(manifest: manifest.raw)
         let prompt = WebExtensionInstaller.confirmation(for: manifest, compatibility: report, permissions: [])
-        XCTAssertEqual(prompt.title, "uBlock Origin won't work in Ferret")
+        XCTAssertEqual(prompt.title, "uBlock Origin won't work in Culpeo")
         XCTAssertEqual(prompt.addTitle, "Add Anyway")
         XCTAssertTrue(prompt.isRisky)
         XCTAssertTrue(prompt.message.contains("AdGuard"))
@@ -89,10 +89,10 @@ final class WebExtensionCompatibilityTests: XCTestCase {
         let report = WebExtensionCompatibility.assess(manifest: manifest.raw)
         let works = WebExtensionInstaller.confirmation(for: manifest, compatibility: report, permissions: [])
         XCTAssertEqual(works.title, "Add Notes?")
-        XCTAssertTrue(works.message.contains("Works in Ferret"))
+        XCTAssertTrue(works.message.contains("Works in Culpeo"))
         XCTAssertFalse(works.isRisky)
         let theme = WebExtensionCompatibility.Report(verdict: .unsupportedType,
-                                                     notes: ["Themes aren't supported in Ferret."])
+                                                     notes: ["Themes aren't supported in Culpeo."])
         XCTAssertNil(WebExtensionInstaller.confirmation(for: manifest, compatibility: theme, permissions: []).addTitle)
     }
 

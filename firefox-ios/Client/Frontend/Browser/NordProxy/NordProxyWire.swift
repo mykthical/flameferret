@@ -34,7 +34,7 @@ enum NordProxyTunnelError: Error, Equatable {
     }
 }
 
-/// The HTTP CONNECT handshake spoken between WebKit, Ferret's relay and NordVPN's HTTPS proxy.
+/// The HTTP CONNECT handshake spoken between WebKit, Culpeo's relay and NordVPN's HTTPS proxy.
 enum NordProxyWire {
     static let headerTerminator = Data("\r\n\r\n".utf8)
     static let maxHeaderLength = 32 * 1024
@@ -43,7 +43,7 @@ enum NordProxyWire {
         return "Basic " + Data("\(username):\(password)".utf8).base64EncodedString()
     }
 
-    /// The request Ferret sends to NordVPN to open a tunnel to `target` ("host:port").
+    /// The request Culpeo sends to NordVPN to open a tunnel to `target` ("host:port").
     static func connectRequest(target: String, authorization: String) -> Data {
         return Data(("CONNECT \(target) HTTP/1.1\r\n"
             + "Host: \(target)\r\n"

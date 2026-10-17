@@ -180,22 +180,22 @@ final class WebExtensionInstaller {
         switch compatibility.verdict {
         case .works:
             return Confirmation(title: "Add \(name)?",
-                                message: "\(version) · Works in Ferret\n\n\(access)",
+                                message: "\(version) · Works in Culpeo\n\n\(access)",
                                 addTitle: "Add",
                                 isRisky: false)
         case .partial:
             return Confirmation(title: "Add \(name)?",
-                                message: "\(version) · Partly works in Ferret\n\(reasons)\n\n\(access)",
+                                message: "\(version) · Partly works in Culpeo\n\(reasons)\n\n\(access)",
                                 addTitle: "Add",
                                 isRisky: false)
         case .incompatible:
-            return Confirmation(title: "\(manifest.name.hasPrefix("__MSG_") ? "This extension" : name) won't work in Ferret",
+            return Confirmation(title: "\(manifest.name.hasPrefix("__MSG_") ? "This extension" : name) won't work in Culpeo",
                                 message: "\(reasons)\n\nYou can still add it, but it probably won't do what you "
                                     + "expect.\n\n\(access)",
                                 addTitle: "Add Anyway",
                                 isRisky: true)
         case .unsupportedType:
-            return Confirmation(title: "Not available in Ferret", message: reasons, addTitle: nil, isRisky: false)
+            return Confirmation(title: "Not available in Culpeo", message: reasons, addTitle: nil, isRisky: false)
         }
     }
 

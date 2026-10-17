@@ -15,7 +15,7 @@ def icon2(c, petal='#FFD500', disc=None):
     s+=f'<rect x="0" y="80" width="100" height="20" fill="{c["band"]}"/>'
     if c['stripe']: s+=f'<rect x="0" y="77" width="100" height="2" fill="{c["stripe"]}"/>'
     small=c.get('extra')=='petals'
-    s+=globe(50,44,21 if small else 25,c['globe'],2.0 if small else 2.2)+text_path('FERRET',50,93.6,7.2,c['text'])
+    s+=globe(50,44,21 if small else 25,c['globe'],2.0 if small else 2.2)+text_path('CULPEO',50,93.6,7.2,c['text'])
     return s
 def tinted(k):
     base=O[k]; c=dict(bg='#000000', globe='#FFFFFF', band='#3A3A3A', stripe=None if not base['stripe'] else '#8A8A8A', text='#FFFFFF', extra=base.get('extra'))

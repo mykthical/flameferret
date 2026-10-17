@@ -5,7 +5,7 @@
 import Foundation
 import UIKit
 
-/// Ferret's color themes. Each restyles the whole app (light, dark and private browsing) and matches
+/// Culpeo's color themes. Each restyles the whole app (light, dark and private browsing) and matches
 /// one of the app icons.
 public enum FerretTheme: String, CaseIterable, Sendable {
     case classic
@@ -52,7 +52,7 @@ public enum FerretTheme: String, CaseIterable, Sendable {
 /// The colors behind one theme. Each scale runs from lightest (index 0) to darkest; `neutral` has 19 steps
 /// (0, 5, 10 … 90) and the others 10 (0, 10 … 90), matching `NovaColors`' naming.
 public struct FerretPalette: Sendable {
-    /// Colors for Ferret's own screens (lock screen, settings), in light and dark appearance.
+    /// Colors for Culpeo's own screens (lock screen, settings), in light and dark appearance.
     public struct Style: Sendable {
         public let paperLight: UIColor
         public let paperDark: UIColor

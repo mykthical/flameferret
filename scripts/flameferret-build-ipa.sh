@@ -3,7 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/
 #
-# Builds an unsigned Ferret.ipa ready for SideStore, AltStore or Sideloadly.
+# Builds an unsigned Culpeo.ipa ready for SideStore, AltStore or Sideloadly.
 # Usage (from the repo root, on a Mac with Xcode): ./scripts/flameferret-build-ipa.sh
 # Set SKIP_BOOTSTRAP=1 to skip ./bootstrap.sh on repeat builds.
 set -euo pipefail
@@ -28,7 +28,7 @@ xcodebuild -resolvePackageDependencies \
     -scheme Fennec \
     -skipPackagePluginValidation
 
-# Ferret's alternate home screen icons (Settings → App Icon / Color Theme).
+# Culpeo's alternate home screen icons (Settings → App Icon / Color Theme).
 ALT_ICONS="AppIcon_Alt_Ferret_Sunflower AppIcon_Alt_Ferret_MidnightGold AppIcon_Alt_Ferret_Oxblood"
 ALT_ICONS="$ALT_ICONS AppIcon_Alt_Ferret_FieldGreen AppIcon_Alt_Ferret_Monochrome"
 
@@ -70,8 +70,8 @@ fi
 
 rm -rf "$OUT"
 mkdir -p "$OUT/Payload"
-cp -R "$APP" "$OUT/Payload/Ferret.app"
-APPDIR="$OUT/Payload/Ferret.app"
+cp -R "$APP" "$OUT/Payload/Culpeo.app"
+APPDIR="$OUT/Payload/Culpeo.app"
 
 # Free Apple IDs can only register a few App IDs, so drop the widget/share/notification extensions.
 rm -rf "$APPDIR/PlugIns" "$APPDIR/Extensions"
@@ -96,5 +96,5 @@ if command -v codesign >/dev/null; then
         --entitlements "$ROOT/firefox-ios/Client/Entitlements/FlameferretSideload.entitlements" "$APPDIR"
 fi
 
-(cd "$OUT" && rm -f Ferret.ipa && zip -qry -9 Ferret.ipa Payload)
-echo "Built $OUT/Ferret.ipa"
+(cd "$OUT" && rm -f Culpeo.ipa && zip -qry -9 Culpeo.ipa Payload)
+echo "Built $OUT/Culpeo.ipa"

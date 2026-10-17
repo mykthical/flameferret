@@ -8,22 +8,22 @@
 "New Tab" = "يېڭى بەتكۈچ";
 
 /* Privacy - Camera Usage Description */
-"NSCameraUsageDescription" = "Ferret كامېرا ئارقىلىق QR كودىنى تارايدۇ ھەمدە سۈرەت تارتىپ ۋە سىنغا ئالىدۇ.";
+"NSCameraUsageDescription" = "Culpeo كامېرا ئارقىلىق QR كودىنى تارايدۇ ھەمدە سۈرەت تارتىپ ۋە سىنغا ئالىدۇ.";
 
 /* Privacy - Face ID Usage Description */
-"NSFaceIDUsageDescription" = "Ferret ساقلانغان ئىم ۋە پۇل تۆلەش ئۇسۇلىڭىزنى زىيارەت قىلىش ئۈچۈن چىراي كىملىكىنى تەلەپ قىلىدۇ.";
+"NSFaceIDUsageDescription" = "Culpeo ساقلانغان ئىم ۋە پۇل تۆلەش ئۇسۇلىڭىزنى زىيارەت قىلىش ئۈچۈن چىراي كىملىكىنى تەلەپ قىلىدۇ.";
 
 /* Privacy - Location When In Use Usage Description */
 "NSLocationWhenInUseUsageDescription" = "سىز زىيارەت قىلغان تور بېكەتلەر ئورنىڭىزنى تەلەپ قىلىشى مۇمكىن.";
 
 /* Privacy - Microphone Usage Description */
-"NSMicrophoneUsageDescription" = "Ferret مىكروفونىڭىزنى ئىشلىتىپ ئۈنگە ئالىدۇ ۋە يۈكلەيدۇ.";
+"NSMicrophoneUsageDescription" = "Culpeo مىكروفونىڭىزنى ئىشلىتىپ ئۈنگە ئالىدۇ ۋە يۈكلەيدۇ.";
 
 /* Privacy - Photo Library Additions Usage Description */
 "NSPhotoLibraryAddUsageDescription" = "بۇ ئارقىلىق سۈرەتلەرنى ساقلىغىلى بولىدۇ.";
 
 /* Privacy - Speech Recognition Usage Description */
-"NSSpeechRecognitionUsageDescription" = "بۇ Ferret نىڭ ئاۋازىڭىزنى تېكىستكە ئايلاندۇرۇشىغا يول قويىدۇ.";
+"NSSpeechRecognitionUsageDescription" = "بۇ Culpeo نىڭ ئاۋازىڭىزنى تېكىستكە ئايلاندۇرۇشىغا يول قويىدۇ.";
 
 /* (No Comment) */
 "Scan QR Code" = "QR كودىنى تارا";

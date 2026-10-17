@@ -106,7 +106,7 @@ final class WebExtensionsHubViewController: UITableViewController, UIDocumentPic
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         guard Section(rawValue: section) == .add else { return nil }
         return "Tap an extension to use its button, open its settings or remove it. "
-            + "Add-ons on addons.mozilla.org are labelled with how well they work in Ferret, and you'll be "
+            + "Add-ons on addons.mozilla.org are labelled with how well they work in Culpeo, and you'll be "
             + "warned before installing one that won't."
     }
 

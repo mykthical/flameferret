@@ -12,7 +12,7 @@ final class NovaColors {
     static let Black = UIColor(rgb: 0x000000)
     static let White = UIColor(rgb: 0xffffff)
 
-    // MARK: - Gray (follows the selected Ferret theme)
+    // MARK: - Gray (follows the selected Culpeo theme)
     static var Gray0: UIColor { FerretThemeStore.palette.neutral[0] }
     static var Gray5: UIColor { FerretThemeStore.palette.neutral[1] }
     static var Gray10: UIColor { FerretThemeStore.palette.neutral[2] }
@@ -153,7 +153,7 @@ final class NovaColors {
     static let Blue80 = UIColor(rgb: 0x17214c)
     static let Blue90 = UIColor(rgb: 0x111524)
 
-    // MARK: - Navy (follows the selected Ferret theme)
+    // MARK: - Navy (follows the selected Culpeo theme)
     static var Navy0: UIColor { FerretThemeStore.palette.accent[0] }
     static var Navy10: UIColor { FerretThemeStore.palette.accent[1] }
     static var Navy20: UIColor { FerretThemeStore.palette.accent[2] }
@@ -165,7 +165,7 @@ final class NovaColors {
     static var Navy80: UIColor { FerretThemeStore.palette.accent[8] }
     static var Navy90: UIColor { FerretThemeStore.palette.accent[9] }
 
-    // MARK: - Slate (follows the selected Ferret theme)
+    // MARK: - Slate (follows the selected Culpeo theme)
     static var Slate0: UIColor { FerretThemeStore.palette.ink[0] }
     static var Slate10: UIColor { FerretThemeStore.palette.ink[1] }
     static var Slate20: UIColor { FerretThemeStore.palette.ink[2] }
@@ -189,7 +189,7 @@ final class NovaColors {
     static let Oxblood80 = UIColor(rgb: 0x3f1313)
     static let Oxblood90 = UIColor(rgb: 0x220c0c)
 
-    // MARK: - Brass (follows the selected Ferret theme)
+    // MARK: - Brass (follows the selected Culpeo theme)
     static var Brass0: UIColor { FerretThemeStore.palette.secondary[0] }
     static var Brass10: UIColor { FerretThemeStore.palette.secondary[1] }
     static var Brass20: UIColor { FerretThemeStore.palette.secondary[2] }

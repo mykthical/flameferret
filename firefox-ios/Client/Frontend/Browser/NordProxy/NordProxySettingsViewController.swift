@@ -97,7 +97,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
             return "These are not your NordVPN email and password. Find them at my.nordaccount.com → NordVPN → "
                 + "Set up NordVPN manually → Service credentials."
         case 2:
-            return "Ferret picks the least busy of NordVPN's encrypted HTTPS proxy servers in the location you "
+            return "Culpeo picks the least busy of NordVPN's encrypted HTTPS proxy servers in the location you "
                 + "choose. Only places with proxy servers are listed. Reload open pages after switching."
         default:
             return "Asks NordVPN which IP address your browsing traffic comes from."
@@ -112,7 +112,7 @@ final class NordProxySettingsViewController: UITableViewController, UITextFieldD
             return "Pages won't load until your service credentials and a server are set, so nothing leaks "
                 + "outside the proxy."
         }
-        return "Routes Ferret's tabs, including private tabs, through NordVPN without turning on a VPN "
+        return "Routes Culpeo's tabs, including private tabs, through NordVPN without turning on a VPN "
             + "for the rest of your iPhone."
     }
 

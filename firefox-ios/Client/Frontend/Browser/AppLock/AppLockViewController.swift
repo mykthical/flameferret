@@ -96,7 +96,7 @@ final class AppLockViewController: UIViewController {
             logoView.heightAnchor.constraint(equalToConstant: 72)
         ])
 
-        wordmarkLabel.attributedText = FerretStyle.letterhead("Ferret",
+        wordmarkLabel.attributedText = FerretStyle.letterhead("Culpeo",
                                                               font: FerretStyle.serifFont(.title2, weight: .bold),
                                                               color: FerretStyle.ink,
                                                               tracking: 5)
@@ -271,11 +271,11 @@ final class AppLockViewController: UIViewController {
         switch mode {
         case .unlock:
             titleLabel.text = "Enter PIN"
-            messageLabel.text = "Ferret is locked."
+            messageLabel.text = "Culpeo is locked."
         case .create:
             titleLabel.text = firstEntry == nil ? "Choose a 6-Digit PIN" : "Confirm PIN"
             messageLabel.text = firstEntry == nil
-                ? "You'll need it to open Ferret. If you forget it, the only way back in is to reinstall the app."
+                ? "You'll need it to open Culpeo. If you forget it, the only way back in is to reinstall the app."
                 : "Enter the same PIN again."
         case .verify:
             titleLabel.text = "Enter Current PIN"

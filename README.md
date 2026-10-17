@@ -1,9 +1,9 @@
-# Ferret
+# Culpeo
 
-**This fork is Ferret (formerly Flameferret): Firefox for iOS with extensions, built-in AdGuard and a PIN lock.** See
+**This fork is Culpeo (formerly Flameferret): Firefox for iOS with extensions, built-in AdGuard and a PIN lock.** See
 [FLAMEFERRET.md](FLAMEFERRET.md) for what works, how to install extensions, and how to build and sideload it.
 
-<img src="branding/ferret-icon-1024.png" width="128" alt="Ferret icon">
+<img src="branding/ferret-icon-1024.png" width="128" alt="Culpeo icon">
 
 ---
 

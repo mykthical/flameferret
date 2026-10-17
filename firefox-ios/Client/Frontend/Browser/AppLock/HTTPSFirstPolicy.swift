@@ -5,7 +5,7 @@
 import Foundation
 
 /// HTTPS-First: page loads that ask for `http://` are sent to `https://` instead. If the secure
-/// connection can't be made, or the site redirects back to `http://`, Ferret falls back to `http://`
+/// connection can't be made, or the site redirects back to `http://`, Culpeo falls back to `http://`
 /// for that site until the app quits. Local network addresses are left alone.
 @MainActor
 final class HTTPSFirstPolicy {

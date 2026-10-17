@@ -8,7 +8,7 @@ import UIKit
 import WebEngine
 import WebKit
 
-/// Sends Ferret's web traffic (normal and private tabs, extension pages) through a NordVPN HTTPS proxy,
+/// Sends Culpeo's web traffic (normal and private tabs, extension pages) through a NordVPN HTTPS proxy,
 /// without a system-wide VPN. WebKit is pointed at `NordProxyRelay` on 127.0.0.1, which makes the
 /// authenticated TLS connection to NordVPN. Needs iOS 17 for per-data-store proxies.
 @MainActor
@@ -44,7 +44,7 @@ final class NordProxyManager {
         DefaultWKEngineConfigurationProvider.dataStoreObserver = { [weak self] dataStore in
             self?.apply(to: dataStore)
         }
-        // iOS can stop the relay's listener while Ferret is suspended; restart it when Ferret comes back.
+        // iOS can stop the relay's listener while Culpeo is suspended; restart it when Culpeo comes back.
         _ = NotificationCenter.default.addObserver(forName: UIApplication.didBecomeActiveNotification,
                                                    object: nil,
                                                    queue: .main) { [weak self] _ in
@@ -133,7 +133,7 @@ final class NordProxyManager {
     }
 
     /// Checks the route step by step — settings, the NordVPN server and credentials, then a request through
-    /// Ferret's relay — and asks NordVPN which IP the traffic arrives from. Errors explain which step failed.
+    /// Culpeo's relay — and asks NordVPN which IP the traffic arrives from. Errors explain which step failed.
     func checkConnection() async throws -> NordConnectionInsight {
         switch route {
         case .direct:
@@ -151,7 +151,7 @@ final class NordProxyManager {
                 try await Self.probe(upstream)
             }
             if relayPort == nil {
-                throw NordConnectionProblem("Ferret's proxy relay isn't running. Turn the proxy off and on again.")
+                throw NordConnectionProblem("Culpeo's proxy relay isn't running. Turn the proxy off and on again.")
             }
         }
         let fetch = insightsFetch ?? Self.fetchInsights
@@ -160,7 +160,7 @@ final class NordProxyManager {
             data = try await fetch(route, relayPort)
         } catch {
             throw NordConnectionProblem("NordVPN accepted your credentials, but the test page couldn't load through "
-                                        + "Ferret's relay (\(error.localizedDescription)).")
+                                        + "Culpeo's relay (\(error.localizedDescription)).")
         }
         return try JSONDecoder().decode(NordConnectionInsight.self, from: data)
     }
@@ -215,7 +215,7 @@ final class NordProxyManager {
         dataStore.proxyConfigurations = Self.proxyConfigurations(for: route, relayPort: relayPort)
     }
 
-    /// WebKit's proxy settings: none when off, Ferret's relay when on, and a dead end when the proxy is on but
+    /// WebKit's proxy settings: none when off, Culpeo's relay when on, and a dead end when the proxy is on but
     /// can't be used yet (no credentials, server or relay), so pages fail instead of going out directly.
     @available(iOS 17.0, *)
     nonisolated static func proxyConfigurations(for route: NordProxyRoute, relayPort: UInt16?) -> [ProxyConfiguration] {

@@ -12,7 +12,7 @@ struct NordProxyUpstream: Equatable, Sendable {
     let authorization: String
 }
 
-/// A small HTTP CONNECT proxy on 127.0.0.1 inside Ferret. WebKit connects to it without TLS or credentials;
+/// A small HTTP CONNECT proxy on 127.0.0.1 inside Culpeo. WebKit connects to it without TLS or credentials;
 /// for each tunnel it opens a TLS connection to the NordVPN server, authenticates with the service
 /// credentials, and then passes bytes both ways. This avoids relying on WebKit's own support for
 /// authenticated HTTPS proxies. All state is confined to `queue`.

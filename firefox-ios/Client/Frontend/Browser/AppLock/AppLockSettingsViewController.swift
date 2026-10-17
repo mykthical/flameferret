@@ -74,9 +74,9 @@ final class AppLockSettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
             return manager.isEnabled
-                ? "Ferret asks for your PIN when it opens and hides your tabs in the app switcher. "
+                ? "Culpeo asks for your PIN when it opens and hides your tabs in the app switcher. "
                     + "After 5 wrong PINs you'll have to wait before trying again."
-                : "Require a 6-digit PIN to open Ferret."
+                : "Require a 6-digit PIN to open Culpeo."
         }
         switch section {
         case 1:
@@ -87,9 +87,9 @@ final class AppLockSettingsViewController: UITableViewController {
         case 2:
             return manager.isEnabled
                 ? "Always on while a PIN is set."
-                : "Covers your tabs when you leave Ferret, so the app switcher doesn't show what you were viewing."
+                : "Covers your tabs when you leave Culpeo, so the app switcher doesn't show what you were viewing."
         default:
-            return "Loads the secure https:// version of every site. If a site doesn't support it, Ferret uses "
+            return "Loads the secure https:// version of every site. If a site doesn't support it, Culpeo uses "
                 + "http:// for that site until you quit."
         }
     }
