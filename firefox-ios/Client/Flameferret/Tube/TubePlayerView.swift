@@ -27,6 +27,7 @@ final class TubePlayerModel: ObservableObject {
     /// Why the native player wasn't used, for the web fallback's banner.
     private(set) var nativeFailure: String?
 
+
     struct Stall: Equatable {
         var message: String?
     }
@@ -57,32 +58,68 @@ final class TubePlayerModel: ObservableObject {
         details?.video ?? (videoID == fallback.id ? fallback : TubeVideo(id: videoID, title: ""))
     }
 
-    /// Picks the player: native when YouTube offers a stream, the web player otherwise.
+    /// Picks the player. The YouTube page loads (without playing) while two routes to a native stream
+    /// race: the stream the page itself was given, and a direct request like YouTube's apps make.
+    /// The first one found plays in Apple's player; if neither turns up, the page becomes the player.
     func startPlayback() async {
         guard phase == .resolving else { return }
-        if !ProcessInfo.processInfo.arguments.contains("-webPlayer") {
-            do {
-                let stream = try await TubeStreams.resolve(videoID: videoID)
-                guard !Task.isCancelled else { return }
-                let playback = TubeNativePlayback(stream: stream, videoID: videoID)
-                native = playback
-                phase = .native
-                playback.start()
-                updateNowPlaying()
-                return
-            } catch is CancellationError {
-                return
-            } catch {
-                nativeFailure = error.localizedDescription
-                TubeEngine.log("native player unavailable: \(error.localizedDescription)")
-            }
+        let id = videoID
+        let page = makeWebTab(autoplay: ProcessInfo.processInfo.arguments.contains("-webPlayer"))
+        webTab = page
+        if ProcessInfo.processInfo.arguments.contains("-webPlayer") {
+            phase = .web
+            await watchPlayback()
+            return
         }
-        startWebPlayer()
-        await watchPlayback()
+
+        let found: TubeStreams.Stream? = await withTaskGroup(of: TubeStreams.Stream?.self) { group in
+            group.addTask { @MainActor in
+                for _ in 0..<24 {
+                    if Task.isCancelled { return nil }
+                    if let stream = await page.pageStream(videoID: id) {
+                        TubeEngine.log("native stream from page")
+                        return TubeStreams.Stream(url: stream.url, userAgent: stream.userAgent, client: "page")
+                    }
+                    try? await Task.sleep(nanoseconds: 500_000_000)
+                }
+                return nil
+            }
+            group.addTask {
+                do {
+                    return try await TubeStreams.resolve(videoID: id)
+                } catch {
+                    await MainActor.run { self.nativeFailure = error.localizedDescription }
+                    return nil
+                }
+            }
+            for await result in group {
+                if let result {
+                    group.cancelAll()
+                    return result
+                }
+            }
+            return nil
+        }
+        guard !Task.isCancelled, id == videoID else { return }
+
+        if let found {
+            let playback = TubeNativePlayback(stream: found, videoID: id)
+            native = playback
+            phase = .native
+            webTab = nil
+            page.close()
+            playback.start()
+            updateNowPlaying()
+        } else {
+            TubeEngine.log("native player unavailable: \(nativeFailure ?? "no stream")")
+            phase = .web
+            page.play()
+            await watchPlayback()
+        }
     }
 
-    private func startWebPlayer() {
-        let tab = TubeWebTab(url: video.watchURL, mode: .player)
+    private func makeWebTab(autoplay: Bool) -> TubeWebTab {
+        let tab = TubeWebTab(url: video.watchURL, mode: .player, autoplay: autoplay)
         tab.onNavigate = { [weak self] url in
             guard let self, let id = TubeLinks.videoID(from: url.absoluteString), id != self.videoID else { return }
             self.videoID = id
@@ -91,9 +128,8 @@ final class TubePlayerModel: ObservableObject {
             self.stall = nil
             Task { await self.loadDetails() }
         }
-        webTab = tab
-        phase = .web
         tab.activate()
+        return tab
     }
 
     func loadDetails() async {
@@ -153,8 +189,9 @@ final class TubePlayerModel: ObservableObject {
                 return
             }
         }
-        if let state = await webTab.playbackState(), state.readyState == 0 {
-            stall = Stall(message: nativeFailure)
+        // A paused, unloaded video is just waiting for a tap; only flag one that tried to play.
+        if let state = await webTab.playbackState(), state.readyState == 0, !state.paused {
+            stall = Stall(message: nil)
         }
     }
 

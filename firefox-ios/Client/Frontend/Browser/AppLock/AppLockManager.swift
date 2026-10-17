@@ -61,9 +61,9 @@ final class AppLockManager {
 
     var isEnabled: Bool { store.hasPIN }
 
-    /// Hide page content in the app switcher even without a PIN. On unless turned off.
+    /// Hide page content in the app switcher even without a PIN. Off unless turned on (YouTube X).
     var hidesInAppSwitcher: Bool {
-        get { defaults.object(forKey: DefaultsKey.privacyScreen) as? Bool ?? true }
+        get { defaults.object(forKey: DefaultsKey.privacyScreen) as? Bool ?? false }
         set { defaults.set(newValue, forKey: DefaultsKey.privacyScreen) }
     }
 

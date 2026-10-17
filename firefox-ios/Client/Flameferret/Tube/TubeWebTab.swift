@@ -34,14 +34,18 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     private var observers: [NSKeyValueObservation] = []
     private var isClosed = false
 
-    init(url: URL, mode: Mode) {
+    /// Whether the page may start the video by itself. Off while the native player looks for a stream.
+    private let autoplay: Bool
+
+    init(url: URL, mode: Mode, autoplay: Bool = true) {
+        self.autoplay = autoplay
         let profile: Profile = AppContainer.shared.resolve()
         tab = Tab(profile: profile, windowUUID: TubeWebTab.windowUUID)
         self.mode = mode
         super.init()
         ShellTabRegistry.shared.register(tab)
         tab.navigationDelegate = self
-        tab.createWebview(configuration: Self.makeConfiguration())
+        tab.createWebview(configuration: Self.makeConfiguration(autoplay: autoplay))
         if let webView = tab.webView {
             webView.customUserAgent = UserAgent.mobileUserAgent()
             webView.allowsBackForwardNavigationGestures = mode == .page
@@ -73,13 +77,13 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
 
     var webView: WKWebView? { tab.webView }
 
-    static func makeConfiguration() -> WKWebViewConfiguration {
+    static func makeConfiguration(autoplay: Bool = true) -> WKWebViewConfiguration {
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
         configuration.allowsInlineMediaPlayback = true
         configuration.allowsPictureInPictureMediaPlayback = true
         configuration.allowsAirPlayForMediaPlayback = true
-        configuration.mediaTypesRequiringUserActionForPlayback = []
+        configuration.mediaTypesRequiringUserActionForPlayback = autoplay ? [] : .all
         return configuration
     }
 
@@ -184,6 +188,35 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         }
     }
 
+    struct PageStream: Sendable {
+        let url: URL
+        let userAgent: String
+    }
+
+    /// The HLS stream the YouTube page itself was given for `videoID`, if it got one. The page's
+    /// request passes YouTube's checks (sign-in, bot checks), so Apple's player can play its stream.
+    func pageStream(videoID: String) async -> PageStream? {
+        let js = """
+            let r = null;
+            try {
+              const p = document.querySelector('#movie_player');
+              if (p && typeof p.getPlayerResponse === 'function') { r = p.getPlayerResponse(); }
+            } catch (e) {}
+            if (!r || !r.videoDetails || r.videoDetails.videoId !== videoID) { r = window.ytInitialPlayerResponse || r; }
+            if (!r || !r.videoDetails || r.videoDetails.videoId !== videoID) { return null; }
+            const status = r.playabilityStatus ? r.playabilityStatus.status : '';
+            const hls = r.streamingData ? r.streamingData.hlsManifestUrl : null;
+            return [status || '', hls || '', navigator.userAgent];
+            """
+        guard let webView,
+              let values = try? await webView.callAsyncJavaScript(js, arguments: ["videoID": videoID],
+                                                                   contentWorld: .page) as? [Any],
+              values.count == 3, let hls = values[1] as? String, !hls.isEmpty, let url = URL(string: hls) else {
+            return nil
+        }
+        return PageStream(url: url, userAgent: values[2] as? String ?? "")
+    }
+
     /// Asks the page to start the video (YouTube sometimes waits for a tap).
     func play() {
         webView?.evaluateJavaScript("const v = document.querySelector('video'); if (v && v.paused) { v.play().catch(() => {}); }",
@@ -269,21 +302,15 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         :root { --ytm-header-height: 0px !important; --ytm-pivot-bar-height: 0px !important; }
         """
 
-    /// Shows only the video player, filling the web view.
+    /// Shows only the video player. YouTube's own layout puts the player at the top of the page at
+    /// 16:9 of its width, which matches the web view, so nothing is repositioned; the page just can't scroll.
     private static let playerCSS = pageCSS + """
         html, body { background: #000 !important; overflow: hidden !important; }
-        .watch-below-the-player, ytm-single-column-watch-next-results-renderer { visibility: hidden !important; }
-        #player-container-id, .player-container {
-          position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
-          width: 100vw !important; height: 100vh !important; padding: 0 !important; margin: 0 !important;
-          z-index: 2147483000 !important; background: #000 !important;
-        }
+        .watch-below-the-player, ytm-single-column-watch-next-results-renderer, ytm-item-section-renderer,
+        ytm-engagement-panel-section-list-renderer { visibility: hidden !important; }
         #player-control-container, ytm-custom-control, .player-controls-background {
           background: transparent !important;
         }
-        #player, #movie_player, .html5-video-player, .html5-video-container, ytm-custom-control,
-        .player-controls-content { width: 100% !important; height: 100% !important; }
-        video { width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important; object-fit: contain !important; }
         """
 
     // MARK: Navigation
