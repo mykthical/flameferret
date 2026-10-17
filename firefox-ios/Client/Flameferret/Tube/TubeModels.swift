@@ -39,7 +39,8 @@ struct TubeVideo: Identifiable, Hashable, Codable, Sendable {
     var watchURL: URL { URL(string: "https://m.youtube.com/watch?v=\(id)") ?? TubeLinks.home }
     /// YouTube's embed player for this video.
     var embedURL: URL {
-        URL(string: "https://www.youtube.com/embed/\(id)?playsinline=1&autoplay=1&rel=0&iv_load_policy=3&fs=1")
+        URL(string: "https://www.youtube.com/embed/\(id)?playsinline=1&autoplay=1&rel=0&iv_load_policy=3&fs=1"
+                + "&enablejsapi=1&origin=https://www.youtube.com&widget_referrer=https://www.youtube.com/")
             ?? watchURL
     }
 

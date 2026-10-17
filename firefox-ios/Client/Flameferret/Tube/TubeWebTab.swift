@@ -74,12 +74,13 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
                                                selector: #selector(extensionsDidChange),
                                                name: .webExtensionsDidChange,
                                                object: nil)
-        var request = URLRequest(url: url)
-        if mode == .embed {
-            // The embed player refuses to load without a referring page (YouTube's "Error 153").
-            request.setValue("https://www.youtube.com/", forHTTPHeaderField: "Referer")
+        if mode == .embed, let webView = tab.webView {
+            // The embed player refuses to load without an embedding page (YouTube's errors 152/153),
+            // so it goes in an iframe on a small page, the way Google's iOS player helper does it.
+            webView.loadHTMLString(Self.embedHTML(for: url), baseURL: URL(string: "https://www.youtube.com/"))
+        } else {
+            tab.loadRequest(URLRequest(url: url))
         }
-        tab.loadRequest(request)
     }
 
     var webView: WKWebView? { tab.webView }
@@ -116,7 +117,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     /// A snapshot of the player page's state, for diagnostics.
     func debugState() async -> String {
         let js = """
-            const v = document.querySelector('video');
+            const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
             const p = document.querySelector('#player-container-id, .player-container');
             const r = p ? p.getBoundingClientRect() : null;
             return JSON.stringify({
@@ -156,11 +157,12 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     /// The player's state, plus any message YouTube shows instead of the video (errors, sign-in walls).
     func playbackState() async -> PlaybackState? {
         let js = """
-            const v = document.querySelector('video');
-            const body = document.body ? (document.body.innerText || document.body.textContent || '') : '';
+            const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
+            const doc = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })();
+            const body = doc.body ? (doc.body.innerText || doc.body.textContent || '') : '';
             let message = '';
             for (const sel of ['.ytp-error', 'ytm-player-error-message-renderer', '.player-error-message-container']) {
-              const e = document.querySelector(sel);
+              const e = doc.querySelector(sel);
               if (e && (e.textContent || '').trim()) { message = e.textContent.trim(); break; }
             }
             if (!message) {
@@ -229,7 +231,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     /// Starts Picture in Picture if the video is playing (used when leaving the app).
     func enterPictureInPictureIfPlaying() {
         let js = """
-            const v = document.querySelector('video');
+            const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
             if (v && !v.paused && v.webkitSupportsPresentationMode
                 && v.webkitSupportsPresentationMode('picture-in-picture')) {
               v.webkitSetPresentationMode('picture-in-picture');
@@ -240,7 +242,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
 
     /// Asks the page to start the video (YouTube sometimes waits for a tap).
     func play() {
-        webView?.evaluateJavaScript("const v = document.querySelector('video'); if (v && v.paused) { v.play().catch(() => {}); }",
+        webView?.evaluateJavaScript("const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video'); if (v && v.paused) { v.play().catch(() => {}); }",
                                     in: nil, in: .page)
     }
 
@@ -249,14 +251,14 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     }
 
     func pause() {
-        webView?.evaluateJavaScript("document.querySelectorAll('video').forEach(v => v.pause());", in: nil, in: .page)
+        webView?.evaluateJavaScript("(() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelectorAll('video').forEach(v => v.pause());", in: nil, in: .page)
     }
 
     /// Starts Picture in Picture on the playing video.
     func startPictureInPicture() {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .moviePlayback)
         let js = """
-            const v = document.querySelector('video');
+            const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
             if (v) {
                 if (v.paused) { v.play(); }
                 if (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')) {
@@ -289,7 +291,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         let controller = webView.configuration.userContentController
         controller.addUserScript(WKUserScript(source: Self.chromeHidingJS(for: mode),
                                               injectionTime: .atDocumentStart,
-                                              forMainFrameOnly: true,
+                                              forMainFrameOnly: mode != .embed,
                                               in: .page))
     }
 
@@ -327,6 +329,20 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         body, #app, .page-container, .mobile-topbar-header-content { padding-top: 0 !important; margin-top: 0 !important; }
         :root { --ytm-header-height: 0px !important; --ytm-pivot-bar-height: 0px !important; }
         """
+
+    private static func embedHTML(for url: URL) -> String {
+        let source = url.absoluteString.replacingOccurrences(of: "\"", with: "&quot;")
+        return """
+            <!doctype html><html><head>
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+            <style>html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+            iframe { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }</style>
+            </head><body>
+            <iframe id="flameferret-embed" src="\(source)" referrerpolicy="strict-origin-when-cross-origin"
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>
+            </body></html>
+            """
+    }
 
     /// The embed player already fills the page; only its title bar and "more videos" overlay go.
     private static let embedCSS = """

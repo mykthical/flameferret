@@ -97,7 +97,8 @@ final class TubePlayerModel: ObservableObject {
 
     private static func embeddingBlocked(_ message: String) -> Bool {
         let lowered = message.lowercased()
-        return ["other websites", "watch on youtube", "watch this video on youtube", "error 15", "video unavailable"]
+        return ["other websites", "watch on youtube", "watch this video on youtube", "error 15", "error code: 15",
+                "unavailable"]
             .contains { lowered.contains($0) }
     }
 
