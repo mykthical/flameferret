@@ -29,6 +29,8 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     @Published private(set) var currentURL: URL?
     @Published private(set) var isLoading = false
     @Published private(set) var pageTitle: String?
+    /// Where YouTube's player sits on the page, in web view points (player mode only).
+    @Published private(set) var playerRect: CGRect?
 
     /// Called when the page moves somewhere new (e.g. an end-screen video).
     var onNavigate: ((URL) -> Void)?
@@ -69,6 +71,9 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
             observers.append(webView.observe(\.title, options: [.new]) { [weak self] view, _ in
                 MainActor.assumeIsolated { self?.pageTitle = view.title }
             })
+        }
+        if mode == .player {
+            Task { [weak self] in await self?.trackPlayerRect() }
         }
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(extensionsDidChange),
@@ -228,10 +233,34 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         return PageStream(url: url, userAgent: values[2] as? String ?? "")
     }
 
+    /// Keeps `playerRect` in step with the page (it moves while YouTube lays out, and on rotation).
+    private func trackPlayerRect() async {
+        let js = """
+            const el = ['#player-container-id', '.player-container', 'ytm-player', '#player', '#movie_player']
+              .map(s => document.querySelector(s)).find(e => e && e.getBoundingClientRect().height > 40);
+            if (!el) { return null; }
+            const r = el.getBoundingClientRect();
+            return [r.left, r.top + window.scrollY, r.width, r.height];
+            """
+        var checks = 0
+        while !isClosed {
+            if let webView,
+               let values = try? await webView.callAsyncJavaScript(js, contentWorld: .page) as? [NSNumber],
+               values.count == 4 {
+                let rect = CGRect(x: values[0].doubleValue, y: values[1].doubleValue,
+                                  width: values[2].doubleValue, height: values[3].doubleValue)
+                if rect != playerRect { playerRect = rect }
+            }
+            checks += 1
+            try? await Task.sleep(nanoseconds: checks < 20 ? 500_000_000 : 2_000_000_000)
+        }
+    }
+
     /// Starts Picture in Picture if the video is playing (used when leaving the app).
     func enterPictureInPictureIfPlaying() {
         let js = """
             const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
+            if (v) { v.disablePictureInPicture = false; v.removeAttribute('disablepictureinpicture'); }
             if (v && !v.paused && v.webkitSupportsPresentationMode
                 && v.webkitSupportsPresentationMode('picture-in-picture')) {
               v.webkitSetPresentationMode('picture-in-picture');
@@ -260,6 +289,8 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         let js = """
             const v = (() => { const f = document.getElementById('flameferret-embed'); try { return (f && f.contentDocument) || document; } catch (e) { return document; } })().querySelector('video');
             if (v) {
+                v.disablePictureInPicture = false;
+                v.removeAttribute('disablepictureinpicture');
                 if (v.paused) { v.play(); }
                 if (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')) {
                     v.webkitSetPresentationMode('picture-in-picture');
@@ -351,22 +382,12 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         .ytp-youtube-button, .ytp-impression-link { display: none !important; }
         """
 
-    /// Shows only the video player. YouTube's own layout puts the player at the top of the page at
-    /// 16:9 of its width, which matches the web view, so nothing is repositioned; the page just can't scroll.
-    private static let playerCSS = pageCSS + """
-        html, body { background: #000 !important; overflow: hidden !important; }
-        .watch-below-the-player, ytm-single-column-watch-next-results-renderer, ytm-item-section-renderer,
-        ytm-engagement-panel-section-list-renderer { visibility: hidden !important; }
-        #player-control-container, ytm-custom-control, .player-controls-background {
-          background: transparent !important;
-        }
-        #movie_player, .html5-video-player, .html5-video-container {
-          width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important;
-        }
-        video.video-stream, .html5-main-video {
-          width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important;
-          object-fit: contain !important;
-        }
+    /// The player page keeps YouTube's own layout: the app shows just the player's rectangle
+    /// (see `playerRect`), so nothing inside the player is resized. Only scrolling and app promos go.
+    private static let playerCSS = """
+        html, body { overflow: hidden !important; overscroll-behavior: none !important; }
+        ytm-mealbar-promo-renderer, .mealbar-promo-renderer, ytm-app-promo-renderer, .open-app-button,
+        ytm-statement-banner-renderer { display: none !important; }
         """
 
     // MARK: Navigation
@@ -415,27 +436,55 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
 struct TubeWebTabView: UIViewRepresentable {
     @ObservedObject var webTab: TubeWebTab
 
-    func makeUIView(context: Context) -> UIView {
-        let container = UIView()
+    func makeUIView(context: Context) -> TubeWebTabContainer {
+        let container = TubeWebTabContainer()
         container.backgroundColor = webTab.mode == .page ? .systemBackground : .black
-        attach(to: container)
+        container.attach(webTab.webView)
         return container
     }
 
-    func updateUIView(_ uiView: UIView, context: Context) {
-        attach(to: uiView)
+    func updateUIView(_ container: TubeWebTabContainer, context: Context) {
+        container.attach(webTab.webView)
+        container.cropRect = webTab.mode == .player && !webTab.showsFullPage ? webTab.playerRect : nil
+    }
+}
+
+/// Hosts a web view. With a crop rectangle set, the page is laid out at full size and only that
+/// rectangle (YouTube's player) is shown, scaled to fit, so the player is never squeezed or restyled.
+final class TubeWebTabContainer: UIView {
+    private weak var webView: WKWebView?
+
+    var cropRect: CGRect? {
+        didSet { if cropRect != oldValue { setNeedsLayout() } }
     }
 
-    private func attach(to container: UIView) {
-        guard let webView = webTab.webView, webView.superview !== container else { return }
+    func attach(_ webView: WKWebView?) {
+        guard let webView, webView.superview !== self else { return }
         webView.removeFromSuperview()
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(webView)
-        NSLayoutConstraint.activate([
-            webView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            webView.topAnchor.constraint(equalTo: container.topAnchor),
-            webView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-        ])
+        webView.translatesAutoresizingMaskIntoConstraints = true
+        addSubview(webView)
+        self.webView = webView
+        clipsToBounds = true
+        setNeedsLayout()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard let webView else { return }
+        webView.transform = .identity
+        guard let crop = cropRect, crop.width > 0, crop.height > 0, bounds.width > 0 else {
+            webView.frame = bounds
+            return
+        }
+        // A tall viewport so YouTube sizes the player from the width, as on a phone screen.
+        let pageSize = CGSize(width: bounds.width, height: max(bounds.width * 2, crop.maxY + 1))
+        let scale = min(bounds.width / crop.width, bounds.height / crop.height)
+        let shown = CGSize(width: crop.width * scale, height: crop.height * scale)
+        let target = CGPoint(x: (bounds.width - shown.width) / 2, y: (bounds.height - shown.height) / 2)
+        webView.bounds = CGRect(origin: .zero, size: pageSize)
+        webView.transform = CGAffineTransform(scaleX: scale, y: scale)
+        // Place the crop's top-left corner at `target`: a page point p lands at center + scale * (p - mid).
+        webView.center = CGPoint(x: target.x - scale * (crop.minX - pageSize.width / 2),
+                                 y: target.y - scale * (crop.minY - pageSize.height / 2))
     }
 }

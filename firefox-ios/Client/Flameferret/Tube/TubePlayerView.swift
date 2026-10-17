@@ -58,48 +58,12 @@ final class TubePlayerModel: ObservableObject {
         details?.video ?? (videoID == fallback.id ? fallback : TubeVideo(id: videoID, title: ""))
     }
 
-    /// Picks the player: Apple's player when YouTube hands the app a stream directly, otherwise
-    /// YouTube's embed player (as in DuckDuckGo's Duck Player), and the full watch page only for
-    /// videos whose owners turned embedding off.
+    /// Plays in YouTube's own mobile player. The page is shown untouched and cropped to the player.
     func startPlayback() async {
         guard phase == .resolving else { return }
-        let id = videoID
-        if !ProcessInfo.processInfo.arguments.contains("-webPlayer") {
-            do {
-                let stream = try await TubeStreams.resolve(videoID: id)
-                guard !Task.isCancelled, id == videoID else { return }
-                let playback = TubeNativePlayback(stream: stream, videoID: id)
-                native = playback
-                phase = .native
-                playback.start()
-                updateNowPlaying()
-                return
-            } catch is CancellationError {
-                return
-            } catch {
-                nativeFailure = error.localizedDescription
-                TubeEngine.log("native player unavailable: \(error.localizedDescription)")
-            }
-        }
-        guard !Task.isCancelled, id == videoID else { return }
-
-        webTab = makeWebTab(url: video.embedURL, mode: .embed)
+        webTab = makeWebTab(url: video.watchURL, mode: .player)
         phase = .web
         await watchPlayback()
-        if let message = stall?.message, Self.embeddingBlocked(message) {
-            TubeEngine.log("embed blocked, using the watch page")
-            webTab?.close()
-            stall = nil
-            webTab = makeWebTab(url: video.watchURL, mode: .player)
-            await watchPlayback()
-        }
-    }
-
-    private static func embeddingBlocked(_ message: String) -> Bool {
-        let lowered = message.lowercased()
-        return ["other websites", "watch on youtube", "watch this video on youtube", "error 15", "error code: 15",
-                "unavailable"]
-            .contains { lowered.contains($0) }
     }
 
     private func makeWebTab(url: URL, mode: TubeWebTab.Mode) -> TubeWebTab {
