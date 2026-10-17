@@ -26,6 +26,8 @@ final class TubePlayerModel: ObservableObject {
     @Published private(set) var comments: TubeCommentsModel?
     /// Why the native player wasn't used, for the web fallback's banner.
     private(set) var nativeFailure: String?
+    /// Filled in by the direct stream request when it succeeds.
+    private var directStream: TubeStreams.Stream?
 
 
     struct Stall: Equatable {
@@ -72,34 +74,29 @@ final class TubePlayerModel: ObservableObject {
             return
         }
 
-        let found: TubeStreams.Stream? = await withTaskGroup(of: TubeStreams.Stream?.self) { group in
-            group.addTask { @MainActor in
-                for _ in 0..<24 {
-                    if Task.isCancelled { return nil }
-                    if let stream = await page.pageStream(videoID: id) {
-                        TubeEngine.log("native stream from page")
-                        return TubeStreams.Stream(url: stream.url, userAgent: stream.userAgent, client: "page")
-                    }
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                }
-                return nil
+        let direct = Task { [weak self] in
+            do {
+                let stream = try await TubeStreams.resolve(videoID: id)
+                self?.directStream = stream
+            } catch {
+                self?.nativeFailure = error.localizedDescription
             }
-            group.addTask {
-                do {
-                    return try await TubeStreams.resolve(videoID: id)
-                } catch {
-                    await MainActor.run { self.nativeFailure = error.localizedDescription }
-                    return nil
-                }
-            }
-            for await result in group {
-                if let result {
-                    group.cancelAll()
-                    return result
-                }
-            }
-            return nil
         }
+        var found: TubeStreams.Stream?
+        for _ in 0..<24 {
+            if Task.isCancelled { break }
+            if let stream = directStream {
+                found = stream
+                break
+            }
+            if let stream = await page.pageStream(videoID: id) {
+                TubeEngine.log("native stream from page")
+                found = TubeStreams.Stream(url: stream.url, userAgent: stream.userAgent, client: "page")
+                break
+            }
+            try? await Task.sleep(nanoseconds: 500_000_000)
+        }
+        direct.cancel()
         guard !Task.isCancelled, id == videoID else { return }
 
         if let found {
