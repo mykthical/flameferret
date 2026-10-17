@@ -1,0 +1,212 @@
+Installing SwiftLint 0.65.0.
+Running Firefox bootstrap...
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100 12654  100 12654    0     0   241k      0 --:--:-- --:--:-- --:--:--  242k
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   509  100   509    0     0  11116      0 --:--:-- --:--:-- --:--:-- 11311
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@8.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+
+added 262 packages, and audited 263 packages in 3s
+
+25 packages are looking for funding
+  run `npm fund` for details
+
+2 vulnerabilities (1 low, 1 moderate)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+
+> @mozilla/firefox-ios@1.0.0 build
+> webpack --config webpack.config.js
+
+assets by status [1m[33m2.13 MiB[39m[22m [1m[33m[big][39m[22m
+  asset [1m[33mMainFrameAtDocumentStart.js[39m[22m [1m[33m562 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: MainFrameAtDocumentStart) 1 related asset
+  asset [1m[33mAllFramesAtDocumentStart.js[39m[22m [1m[33m411 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: AllFramesAtDocumentStart)
+  asset [1m[33mAutofillAllFramesAtDocumentStart.js[39m[22m [1m[33m401 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: AutofillAllFramesAtDocumentStart)
+  asset [1m[33mAddressFormManager.js[39m[22m [1m[33m401 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: AddressFormManager)
+  asset [1m[33mTranslationsEngine.js[39m[22m [1m[33m401 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: TranslationsEngine)
+asset [1m[32mtranslations-engine.worker.js[39m[22m 109 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: translations-engine.worker)
+asset [1m[32mNightModeAllFramesAtDocumentStart.js[39m[22m 92.5 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: NightModeAllFramesAtDocumentStart)
+asset [1m[32mMainFrameAtDocumentEnd.js[39m[22m 8.61 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: MainFrameAtDocumentEnd)
+asset [1m[32mWebcompatAllFramesAtDocumentStart.js[39m[22m 2.08 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: WebcompatAllFramesAtDocumentStart)
+asset [1m[32mAllFramesAtDocumentEnd.js[39m[22m 1.32 KiB [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m (name: AllFramesAtDocumentEnd)
+runtime modules 10.2 KiB 32 modules
+orphan modules 1.05 KiB [1m[33m[orphan][39m[22m 1 module
+modules by path [1m./firefox-ios/Client/[39m[22m 1.22 MiB
+  modules by path [1m./firefox-ios/Client/Assets/CC_Script/[39m[22m 1.13 MiB 47 modules
+  modules by path [1m./firefox-ios/Client/Frontend/UserContent/UserScripts/[39m[22m 87.8 KiB 30 modules
+  [1m./firefox-ios/Client/ContentBlocker/TrackingProtectionStats.js[39m[22m 6.08 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+modules by path [1m./node_modules/[39m[22m 472 KiB
+  modules by path [1m./node_modules/@mozilla/readability/*.js[39m[22m 92.2 KiB 3 modules
+  modules by path [1m./node_modules/page-metadata-parser/*.js[39m[22m 6 KiB 2 modules
+  [1m./node_modules/darkreader/darkreader.js[39m[22m 290 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1m./node_modules/dompurify/dist/purify.cjs.js[39m[22m 82.5 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1m./node_modules/script-loader/addScript.js[39m[22m 642 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+webpack 5.109.2 compiled [1m[32msuccessfully[39m[22m in 7728 ms
+Wrote firefox-ios/Client/Frontend/Browser/WebExtensions/WebExtensionAPISource.swift
+Command line invocation:
+    /Applications/Xcode_26.5.app/Contents/Developer/usr/bin/xcodebuild -resolvePackageDependencies -project Client.xcodeproj -scheme Fennec -onlyUsePackageVersionsFromResolvedFile
+
+Resolve Package Graph
+
+Fetching from https://github.com/apple/swift-asn1.git
+
+Fetching from https://github.com/apple/swift-argument-parser
+
+Fetching from https://github.com/nbhasin2/Fuzi.git
+
+Fetching from https://github.com/kif-framework/KIF.git
+
+Fetching from https://github.com/johnxnguyen/Down.git
+
+Fetching from https://github.com/gumob/PunycodeSwift.git
+
+Fetching from https://github.com/apple/swift-certificates.git
+
+Fetching from https://github.com/mozilla-mobile/MappaMundi.git
+
+Fetching from https://github.com/apple/swift-crypto.git
+
+Fetching from https://github.com/ameshkov/swift-psl
+
+Fetching from https://github.com/AliSoftware/Dip.git
+
+Fetching from https://github.com/swiftlang/swift-syntax.git
+
+Fetching from https://github.com/swhitty/SwiftDraw
+
+Fetching from https://github.com/SwiftyBeaver/SwiftyBeaver.git
+
+Fetching from https://github.com/Dev1an/A-Star
+
+Fetching from https://github.com/mozilla/glean-swift
+
+Fetching from https://github.com/getsentry/sentry-cocoa.git
+
+Fetching from https://github.com/onevcat/Kingfisher.git
+
+Fetching from https://github.com/nbhasin2/GCDWebServer.git
+
+Fetching from https://github.com/WilhelmOks/ModifiedCopyMacro.git
+
+Fetching from https://github.com/AdguardTeam/SafariConverterLib.git
+
+Creating working copy of package ‘KIF’
+
+Creating working copy of package ‘swift-argument-parser’
+
+Creating working copy of package ‘Down’
+
+Checking out 1.5.0 of package ‘swift-argument-parser’
+
+Checking out 3.8.9 of package ‘KIF’
+
+Checking out 0.11.0 of package ‘Down’
+
+Creating working copy of package ‘PunycodeSwift’
+
+Checking out 3.0.0 of package ‘PunycodeSwift’
+
+Creating working copy of package ‘swift-certificates’
+
+Creating working copy of package ‘MappaMundi’
+
+Creating working copy of package ‘swift-crypto’
+
+Checking out master (f56a6e4) of package ‘MappaMundi’
+
+Checking out 1.19.3 of package ‘swift-certificates’
+
+Checking out 3.15.1 of package ‘swift-crypto’
+
+Creating working copy of package ‘swift-psl’
+
+Checking out 1.1.43 of package ‘swift-psl’
+
+Creating working copy of package ‘Dip’
+
+Creating working copy of package ‘swift-syntax’
+
+Checking out 7.1.1 of package ‘Dip’
+
+Creating working copy of package ‘SwiftDraw’
+
+Checking out 603.0.2 of package ‘swift-syntax’
+
+Checking out 0.29.0 of package ‘SwiftDraw’
+
+Creating working copy of package ‘SwiftyBeaver’
+
+Checking out 2.1.1 of package ‘SwiftyBeaver’
+
+Creating working copy of package ‘A-Star’
+
+Checking out 3.0.0-beta-1 of package ‘A-Star’
+
+Creating working copy of package ‘glean-swift’
+
+Checking out 70.1.0 of package ‘glean-swift’
+
+Creating working copy of package ‘sentry-cocoa’
+
+Creating working copy of package ‘Kingfisher’
+
+Creating working copy of package ‘GCDWebServer’
+
+Checking out master (0039b4d) of package ‘GCDWebServer’
+
+Checking out 8.13.0 of package ‘Kingfisher’
+
+Checking out 9.10.0 of package ‘sentry-cocoa’
+
+Creating working copy of package ‘ModifiedCopyMacro’
+
+Checking out d020bf8c6432d0c6aa8428b5ca1c3225a0545b3b of package ‘ModifiedCopyMacro’
+
+Creating working copy of package ‘SafariConverterLib’
+
+Creating working copy of package ‘Fuzi’
+
+Checking out 4.3.1 of package ‘SafariConverterLib’
+
+Checking out master (0417068) of package ‘Fuzi’
+
+Creating working copy of package ‘swift-asn1’
+
+Checking out 1.7.0 of package ‘swift-asn1’
+
+
+Resolved source packages:
+  ContentBlockerConverter: https://github.com/AdguardTeam/SafariConverterLib.git @ 4.3.1
+  AStar: https://github.com/Dev1an/A-Star @ 3.0.0-beta-1
+  Kingfisher: https://github.com/onevcat/Kingfisher.git @ 8.13.0
+  Dip: https://github.com/AliSoftware/Dip.git @ 7.1.1
+  swift-psl: https://github.com/ameshkov/swift-psl @ 1.1.43
+  Glean: https://github.com/mozilla/glean-swift @ 70.1.0
+  KIF: https://github.com/kif-framework/KIF.git @ 3.8.9
+  swift-argument-parser: https://github.com/apple/swift-argument-parser @ 1.5.0
+  Down: https://github.com/johnxnguyen/Down.git @ 0.11.0
+  swift-syntax: https://github.com/swiftlang/swift-syntax.git @ 603.0.2
+  BrowserKit: /Users/runner/work/flameferret/flameferret/BrowserKit
+  swift-certificates: https://github.com/apple/swift-certificates.git @ 1.19.3
+  MappaMundi: https://github.com/mozilla-mobile/MappaMundi.git @ master (f56a6e4)
+  swift-crypto: https://github.com/apple/swift-crypto.git @ 3.15.1
+  Punycode: https://github.com/gumob/PunycodeSwift.git @ 3.0.0
+  MozillaRustComponentsSwift: /Users/runner/work/flameferret/flameferret/MozillaRustComponents
+  SwiftDraw: https://github.com/swhitty/SwiftDraw @ 0.29.0
+  Fuzi: https://github.com/nbhasin2/Fuzi.git @ master (0417068)
+  GCDWebServer: https://github.com/nbhasin2/GCDWebServer.git @ master (0039b4d)
+  ModifiedCopy: https://github.com/WilhelmOks/ModifiedCopyMacro.git @ d020bf8
+  Sentry: https://github.com/getsentry/sentry-cocoa.git @ 9.10.0
+  swift-asn1: https://github.com/apple/swift-asn1.git @ 1.7.0
+  SwiftyBeaver: https://github.com/SwiftyBeaver/SwiftyBeaver.git @ 2.1.1
+
+resolved source packages: ContentBlockerConverter, AStar, Kingfisher, Dip, swift-psl, Glean, KIF, swift-argument-parser, Down, swift-syntax, BrowserKit, swift-certificates, MappaMundi, swift-crypto, Punycode, MozillaRustComponentsSwift, SwiftDraw, Fuzi, GCDWebServer, ModifiedCopy, Sentry, swift-asn1, SwiftyBeaver

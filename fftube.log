@@ -1,0 +1,34 @@
+Timestamp               Ty Process[PID:TID]
+2026-10-17 06:38:55.825 Df Client[41859:1cf8d] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:39:10.340 Df Client[41859:1cf8d] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:39:10.450 Df Client[41859:1cf8d] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
+2026-10-17 06:39:11.047 Df Client[41859:1cf8d] (Foundation) [FFTube] browse -> 116759 chars
+2026-10-17 06:40:42.876 Df Client[46094:1fabd] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:40:48.573 Df Client[46094:1fabd] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:40:48.598 Df Client[46094:1fabd] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
+2026-10-17 06:40:49.616 Df Client[46094:1fabd] (Foundation) [FFTube] search -> 1213210 chars
+2026-10-17 06:41:26.779 Df Client[47978:20e79] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:41:29.907 Df Client[47978:20e79] (Foundation) [FFTube] playback: PlaybackState(hasVideo: false, readyState: 0, paused: true, message: nil)
+2026-10-17 06:41:31.539 Df Client[47978:20e79] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:41:31.600 Df Client[47978:20e79] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
+2026-10-17 06:41:32.146 Df Client[47978:20e79] (Foundation) [FFTube] playback: PlaybackState(hasVideo: true, readyState: 0, paused: true, message: nil)
+2026-10-17 06:41:32.516 Df Client[47978:20e79] (Foundation) [FFTube] browse -> 116738 chars
+2026-10-17 06:41:33.034 Df Client[47978:20e79] (Foundation) [FFTube] next -> 414396 chars
+2026-10-17 06:41:33.970 Df Client[47978:20e79] (Foundation) [FFTube] next -> 265174 chars
+2026-10-17 06:41:34.316 Df Client[47978:20e79] (Foundation) [FFTube] playback: PlaybackState(hasVideo: true, readyState: 0, paused: false, message: nil)
+2026-10-17 06:41:36.357 Df Client[47978:20e79] (Foundation) [FFTube] playback: PlaybackState(hasVideo: true, readyState: 0, paused: false, message: Optional("Sign in to confirm you’re not a bot"))
+2026-10-17 06:43:00.051 Df Client[53021:23e2a] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:43:04.422 Df Client[53021:23e2a] (Foundation) [FFTube] playback: PlaybackState(hasVideo: false, readyState: 0, paused: true, message: nil)
+2026-10-17 06:43:06.012 Df Client[53021:23e2a] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:43:06.158 Df Client[53021:23e2a] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
+2026-10-17 06:43:06.466 Df Client[53021:23e2a] (Foundation) [FFTube] playback: PlaybackState(hasVideo: true, readyState: 0, paused: true, message: nil)
+2026-10-17 06:43:06.873 Df Client[53021:23e2a] (Foundation) [FFTube] browse -> 116761 chars
+2026-10-17 06:43:07.095 Df Client[53021:23e2a] (Foundation) [FFTube] next -> 400781 chars
+2026-10-17 06:43:07.705 Df Client[53021:23e2a] (Foundation) [FFTube] next -> 267031 chars
+2026-10-17 06:43:08.502 Df Client[53021:23e2a] (Foundation) [FFTube] playback: PlaybackState(hasVideo: true, readyState: 0, paused: false, message: Optional("Sign in to confirm you’re not a bot"))
+2026-10-17 06:43:46.086 Df Client[56215:25be1] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:43:49.810 Df Client[56215:25be1] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:43:49.839 Df Client[56215:25be1] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
+2026-10-17 06:44:08.818 Df Client[57152:265cc] (Foundation) [FFTube] loading youtube.com
+2026-10-17 06:44:12.416 Df Client[57152:265cc] (Foundation) [FFTube] didFinish https://www.youtube.com/feed/you
+2026-10-17 06:44:12.489 Df Client[57152:265cc] (Foundation) [FFTube] engine finished: success() url=https://www.youtube.com/feed/you signedIn=false
