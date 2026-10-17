@@ -85,8 +85,7 @@ final class AppLockViewController: UIViewController {
         stack.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(stack)
 
-        logoView.image = UIImage(named: "fxHomeHeaderLogoBall")?.withRenderingMode(.alwaysTemplate)
-        logoView.tintColor = FerretStyle.ink
+        logoView.image = UIImage(named: "youtubexGlyph")
         logoView.contentMode = .scaleAspectFit
         logoView.isAccessibilityElement = false
         NSLayoutConstraint.activate([
@@ -94,7 +93,7 @@ final class AppLockViewController: UIViewController {
             logoView.heightAnchor.constraint(equalToConstant: 72)
         ])
 
-        wordmarkLabel.attributedText = FerretStyle.letterhead("Ferret",
+        wordmarkLabel.attributedText = FerretStyle.letterhead("YouTube X",
                                                               font: FerretStyle.serifFont(.title2, weight: .bold),
                                                               color: FerretStyle.ink,
                                                               tracking: 5)
@@ -269,7 +268,7 @@ final class AppLockViewController: UIViewController {
         switch mode {
         case .unlock:
             titleLabel.text = "Enter PIN"
-            messageLabel.text = "Ferret is locked."
+            messageLabel.text = "YouTube X is locked."
         case .create:
             titleLabel.text = firstEntry == nil ? "Choose a 6-Digit PIN" : "Confirm PIN"
             messageLabel.text = firstEntry == nil

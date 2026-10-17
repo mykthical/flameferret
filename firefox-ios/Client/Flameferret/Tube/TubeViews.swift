@@ -470,6 +470,17 @@ enum TubeImageCache {
         cache.countLimit = 400
         return cache
     }()
+
+    /// Loads an image without cookies, through the cache.
+    static func image(for url: URL) async -> UIImage? {
+        if let cached = cache.object(forKey: url as NSURL) { return cached }
+        var request = URLRequest(url: url)
+        request.httpShouldHandleCookies = false
+        guard let (data, _) = try? await URLSession.shared.data(for: request),
+              let image = UIImage(data: data) else { return nil }
+        cache.setObject(image, forKey: url as NSURL)
+        return image
+    }
 }
 
 @available(iOS 18.0, *)

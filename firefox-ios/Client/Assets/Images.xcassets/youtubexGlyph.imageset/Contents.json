@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "youtubexGlyph.png", "idiom" : "universal", "scale" : "1x" },
+    { "filename" : "youtubexGlyph@2x.png", "idiom" : "universal", "scale" : "2x" },
+    { "filename" : "youtubexGlyph@3x.png", "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

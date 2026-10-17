@@ -2,32 +2,88 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/
 
+import AVKit
 import SwiftUI
 import UIKit
 
-/// Owns the player tab and the native details for one video.
+/// Owns playback and the native details for one video. Plays natively with Apple's player when
+/// YouTube hands out a stream, and falls back to YouTube's own player in a Ferret tab otherwise.
 @available(iOS 18.0, *)
 @MainActor
 final class TubePlayerModel: ObservableObject {
+    enum Phase: Equatable {
+        case resolving, native, web
+    }
+
     @Published private(set) var videoID: String
     @Published private(set) var details: TubeVideoDetails?
     @Published private(set) var error: String?
-    /// Set when the video still hasn't loaded a few seconds after opening; holds YouTube's message if it shows one.
+    @Published private(set) var phase: Phase = .resolving
+    @Published private(set) var native: TubeNativePlayback? { didSet { resources.native = native } }
+    @Published private(set) var webTab: TubeWebTab? { didSet { resources.webTab = webTab } }
+    /// Web player only: set when the video still hasn't loaded a few seconds after opening.
     @Published private(set) var stall: Stall?
     @Published private(set) var comments: TubeCommentsModel?
-    let webTab: TubeWebTab
+    /// Why the native player wasn't used, for the web fallback's banner.
+    private(set) var nativeFailure: String?
 
     struct Stall: Equatable {
         var message: String?
     }
 
     private let fallback: TubeVideo
+    private let resources = Resources()
+
+    /// What has to be torn down when the screen goes away (read from `deinit`).
+    private final class Resources: @unchecked Sendable {
+        var native: TubeNativePlayback?
+        var webTab: TubeWebTab?
+    }
 
     init(video: TubeVideo) {
         videoID = video.id
         fallback = video
-        webTab = TubeWebTab(url: video.watchURL, mode: .player)
-        webTab.onNavigate = { [weak self] url in
+    }
+
+    deinit {
+        let resources = resources
+        Task { @MainActor in
+            resources.webTab?.close()
+            resources.native?.stop()
+        }
+    }
+
+    var video: TubeVideo {
+        details?.video ?? (videoID == fallback.id ? fallback : TubeVideo(id: videoID, title: ""))
+    }
+
+    /// Picks the player: native when YouTube offers a stream, the web player otherwise.
+    func startPlayback() async {
+        guard phase == .resolving else { return }
+        if !ProcessInfo.processInfo.arguments.contains("-webPlayer") {
+            do {
+                let stream = try await TubeStreams.resolve(videoID: videoID)
+                guard !Task.isCancelled else { return }
+                let playback = TubeNativePlayback(stream: stream, videoID: videoID)
+                native = playback
+                phase = .native
+                playback.start()
+                updateNowPlaying()
+                return
+            } catch is CancellationError {
+                return
+            } catch {
+                nativeFailure = error.localizedDescription
+                TubeEngine.log("native player unavailable: \(error.localizedDescription)")
+            }
+        }
+        startWebPlayer()
+        await watchPlayback()
+    }
+
+    private func startWebPlayer() {
+        let tab = TubeWebTab(url: video.watchURL, mode: .player)
+        tab.onNavigate = { [weak self] url in
             guard let self, let id = TubeLinks.videoID(from: url.absoluteString), id != self.videoID else { return }
             self.videoID = id
             self.details = nil
@@ -35,15 +91,9 @@ final class TubePlayerModel: ObservableObject {
             self.stall = nil
             Task { await self.loadDetails() }
         }
-    }
-
-    deinit {
-        let tab = webTab
-        Task { @MainActor in tab.close() }
-    }
-
-    var video: TubeVideo {
-        details?.video ?? (videoID == fallback.id ? fallback : TubeVideo(id: videoID, title: ""))
+        webTab = tab
+        phase = .web
+        tab.activate()
     }
 
     func loadDetails() async {
@@ -61,17 +111,33 @@ final class TubePlayerModel: ObservableObject {
             }
             error = nil
             if let details { TubeLibrary.shared.recordWatch(details.video) }
+            updateNowPlaying()
         } catch {
             self.error = error.localizedDescription
         }
     }
 
-    /// Watches the first seconds of playback. Nudges the player to start, and if nothing has loaded,
-    /// surfaces why instead of leaving a black box.
+    private func updateNowPlaying() {
+        guard let native, !video.title.isEmpty else { return }
+        native.setMetadata(title: video.title, author: video.authorName, artworkURL: video.thumbnailURL)
+    }
+
+    func pause() {
+        native?.player.pause()
+        webTab?.pause()
+    }
+
+    /// Leaving the screen pauses playback, unless the video is playing in Picture in Picture.
+    func didLeaveScreen() {
+        if native?.isPictureInPictureActive == true { return }
+        native?.player.pause()
+    }
+
+    /// Web player only: watches the first seconds of playback and surfaces why nothing loaded.
     func watchPlayback() async {
+        guard let webTab else { return }
         stall = nil
         let id = videoID
-        TubeEngine.log("watch: start \(id)")
         for attempt in 0..<8 {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             guard !Task.isCancelled, id == videoID, !webTab.showsFullPage else { return }
@@ -83,25 +149,18 @@ final class TubePlayerModel: ObservableObject {
             }
             if attempt == 1 { webTab.play() }
             if let message = state.message {
-                TubeEngine.log("watch: stalled with message")
                 stall = Stall(message: message)
                 return
             }
         }
         if let state = await webTab.playbackState(), state.readyState == 0 {
-            TubeEngine.log("watch: stalled without message")
-            stall = Stall(message: nil)
+            stall = Stall(message: nativeFailure)
         }
     }
 
     func retry() {
         stall = nil
-        webTab.reload()
-    }
-
-    func play(_ video: TubeVideo) {
-        guard video.id != videoID else { return }
-        webTab.load(video.watchURL)
+        webTab?.reload()
     }
 }
 
@@ -110,38 +169,18 @@ struct TubePlayerView: View {
     @StateObject private var model: TubePlayerModel
     @EnvironmentObject private var library: TubeLibrary
     @State private var expanded = false
+    @State private var quality = TubeQuality.preferred
 
     init(video: TubeVideo) {
         _model = StateObject(wrappedValue: TubePlayerModel(video: video))
     }
 
     private var video: TubeVideo { model.video }
+    private var showsFullPage: Bool { model.webTab?.showsFullPage ?? false }
 
     var body: some View {
         VStack(spacing: 0) {
-            TubeWebTabView(webTab: model.webTab)
-                .aspectRatio(model.webTab.showsFullPage ? nil : 16 / 9, contentMode: .fit)
-                .frame(maxHeight: model.webTab.showsFullPage ? .infinity : nil)
-                .background(Color.black)
-                .overlay(alignment: .bottom) {
-                    if let stall = model.stall, !model.webTab.showsFullPage {
-                        TubeStallBanner(stall: stall,
-                                        retry: { model.retry(); Task { await model.watchPlayback() } },
-                                        showPage: { model.webTab.setShowsFullPage(true) })
-                    }
-                }
-                .overlay(alignment: .topTrailing) {
-                    if model.webTab.showsFullPage {
-                        Button("Back to player") {
-                            model.webTab.setShowsFullPage(false)
-                            Task { await model.watchPlayback() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .buttonBorderShape(.capsule)
-                        .controlSize(.small)
-                        .padding(10)
-                    }
-                }
+            playerArea
             ScrollView {
                 details
                     .padding(.horizontal, 16)
@@ -150,32 +189,78 @@ struct TubePlayerView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { model.webTab.startPictureInPicture() } label: {
-                    Label("Picture in Picture", systemImage: "pip.enter")
+            if let webTab = model.webTab {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { webTab.startPictureInPicture() } label: {
+                        Label("Picture in Picture", systemImage: "pip.enter")
+                    }
                 }
             }
         }
-        .onAppear { model.webTab.activate() }
+        .onAppear { model.webTab?.activate() }
+        .onDisappear { model.didLeaveScreen() }
+        .task { await model.startPlayback() }
         .task(id: model.videoID) {
-            async let watching: Void = model.watchPlayback()
             if model.details == nil { await model.loadDetails() }
-            await watching
         }
-        .task {
-            guard ProcessInfo.processInfo.arguments.contains("-openVideo") else { return }
-            for _ in 0..<8 {
-                try? await Task.sleep(nanoseconds: 8_000_000_000)
-                TubeEngine.log("player: \(await model.webTab.debugState())")
+    }
+
+    // MARK: Player
+
+    @ViewBuilder
+    private var playerArea: some View {
+        switch model.phase {
+        case .resolving:
+            ZStack {
+                Color.black
+                ProgressView().tint(.white)
+            }
+            .aspectRatio(16 / 9, contentMode: .fit)
+        case .native:
+            if let native = model.native {
+                TubeAVPlayerView(playback: native)
+                    .aspectRatio(16 / 9, contentMode: .fit)
+                    .background(Color.black)
+                    .overlay(alignment: .topLeading) { TubeSkipToast(playback: native) }
+            }
+        case .web:
+            if let webTab = model.webTab {
+                webPlayer(webTab)
             }
         }
+    }
+
+    private func webPlayer(_ webTab: TubeWebTab) -> some View {
+        TubeWebTabView(webTab: webTab)
+            .aspectRatio(webTab.showsFullPage ? nil : 16 / 9, contentMode: .fit)
+            .frame(maxHeight: webTab.showsFullPage ? .infinity : nil)
+            .background(Color.black)
+            .overlay(alignment: .bottom) {
+                if let stall = model.stall, !webTab.showsFullPage {
+                    TubeStallBanner(stall: stall,
+                                    retry: { model.retry(); Task { await model.watchPlayback() } },
+                                    showPage: { webTab.setShowsFullPage(true) })
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if webTab.showsFullPage {
+                    Button("Back to player") {
+                        webTab.setShowsFullPage(false)
+                        Task { await model.watchPlayback() }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .buttonBorderShape(.capsule)
+                    .controlSize(.small)
+                    .padding(10)
+                }
+            }
     }
 
     // MARK: Details
 
     private var details: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text(video.title.isEmpty ? (model.webTab.pageTitle ?? " ") : video.title)
+            Text(video.title.isEmpty ? (model.webTab?.pageTitle ?? " ") : video.title)
                 .font(.title3.weight(.semibold))
                 .textSelection(.enabled)
 
@@ -205,7 +290,7 @@ struct TubePlayerView: View {
             }
 
             if let comments = model.comments {
-                TubeCommentsCard(model: comments, video: video, pause: { model.webTab.pause() })
+                TubeCommentsCard(model: comments, video: video, pause: { model.pause() })
             } else if model.details != nil {
                 Text("Comments are turned off.").font(.footnote).foregroundStyle(.secondary)
             }
@@ -236,15 +321,27 @@ struct TubePlayerView: View {
                     Label(isSaved ? "Saved" : "Save", systemImage: isSaved ? "bookmark.fill" : "bookmark")
                 }
                 ShareLink(item: video.shareURL) { Label("Share", systemImage: "square.and.arrow.up") }
-                Button { model.webTab.startPictureInPicture() } label: {
-                    Label("PiP", systemImage: "pip.enter")
-                }
-                if let sponsorBlock = TubeBundledExtensions.installed(.sponsorBlock) {
-                    Button {
-                        model.webTab.activate()
-                        WebExtensionManager.shared.openPopup(for: sponsorBlock)
+                if let native = model.native {
+                    Menu {
+                        Picker("Quality", selection: $quality) {
+                            ForEach(TubeQuality.allCases) { Text($0.label).tag($0) }
+                        }
                     } label: {
-                        Label("SponsorBlock", systemImage: "forward.end.alt")
+                        Label(quality.label, systemImage: "slider.horizontal.3")
+                    }
+                    .onChange(of: quality) { _, newValue in native.setQuality(newValue) }
+                }
+                if let webTab = model.webTab {
+                    Button { webTab.startPictureInPicture() } label: {
+                        Label("PiP", systemImage: "pip.enter")
+                    }
+                    if let sponsorBlock = TubeBundledExtensions.installed(.sponsorBlock) {
+                        Button {
+                            webTab.activate()
+                            WebExtensionManager.shared.openPopup(for: sponsorBlock)
+                        } label: {
+                            Label("SponsorBlock", systemImage: "forward.end.alt")
+                        }
                     }
                 }
             }
@@ -252,6 +349,25 @@ struct TubePlayerView: View {
             .buttonStyle(.bordered)
             .buttonBorderShape(.capsule)
             .controlSize(.small)
+        }
+    }
+}
+
+/// "Skipped sponsor" note over the native player.
+@available(iOS 18.0, *)
+struct TubeSkipToast: View {
+    @ObservedObject var playback: TubeNativePlayback
+
+    var body: some View {
+        if let message = playback.skippedMessage {
+            Label(message, systemImage: "forward.end.fill")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(.black.opacity(0.7), in: Capsule())
+                .padding(10)
+                .transition(.opacity)
         }
     }
 }

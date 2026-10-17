@@ -22,6 +22,7 @@ struct TubeSettingsView: View {
     @State private var appLockOn = AppLockManager.shared.isEnabled
     @State private var proxyOn = NordProxyManager.shared.store.isEnabled
     @State private var sheet: SettingsSheet?
+    @State private var skipCategories = TubeSponsorBlock.enabled
 
     enum SettingsSheet: String, Identifiable {
         case adGuard, appLock, proxy
@@ -36,6 +37,23 @@ struct TubeSettingsView: View {
                 extensionsSection
                 securitySection
 
+                Section {
+                    ForEach(TubeSponsorBlock.Category.allCases) { category in
+                        Toggle(category.label, isOn: Binding(
+                            get: { skipCategories.contains(category) },
+                            set: { isOn in
+                                if isOn { skipCategories.insert(category) } else { skipCategories.remove(category) }
+                                TubeSponsorBlock.enabled = skipCategories
+                            }
+                        ))
+                    }
+                } header: {
+                    Text("Skip automatically")
+                } footer: {
+                    Text("Uses SponsorBlock's community database. Only a short hash of the video ID is sent, "
+                         + "so SponsorBlock can't tell what you're watching.")
+                }
+
                 Section("Playback") {
                     Toggle("Keep playing in the background", isOn: $backgroundAudio)
                         .onChange(of: backgroundAudio) { _, isOn in
@@ -49,7 +67,8 @@ struct TubeSettingsView: View {
                     Label("Firefox Sync and Mozilla accounts removed", systemImage: "person.crop.circle.badge.xmark")
                     Label("App components can't reach Mozilla's servers", systemImage: "network.slash")
                     Label("Ads and trackers blocked by AdGuard", systemImage: "shield.checkered")
-                    Label("Sponsor segments skipped by SponsorBlock", systemImage: "forward.end.alt")
+                    Label("Videos stream straight from YouTube, without your cookies", systemImage: "play.rectangle")
+                    Label("Sponsor segments skipped using SponsorBlock", systemImage: "forward.end.alt")
                     LabeledContent("App requests refused this session", value: "\(refused)")
                 } header: {
                     Text("Privacy")

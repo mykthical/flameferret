@@ -98,3 +98,34 @@ if __name__ == "__main__":
     # Tinted: a grayscale glyph on black that iOS colors with the user's tint.
     render((0, 0, 0), (255, 255, 255), (205, 205, 205), (0, 0, 0), (40, 40, 40), (110, 110, 110)).convert("L").convert("RGB").save(f"{OUT}/youtubex-tinted.png")
     print("Wrote", OUT)
+
+
+def glyph(color, size):
+    """The shield-and-play glyph alone on a transparent square, for the splash and lock screens."""
+    mask = glyph_mask()
+    box = mask.getbbox()
+    side = max(box[2] - box[0], box[3] - box[1])
+    cxg, cyg = (box[0] + box[2]) / 2, (box[1] + box[3]) / 2
+    square = (int(cxg - side / 2), int(cyg - side / 2), int(cxg + side / 2), int(cyg + side / 2))
+    mask = mask.crop(square)
+    out = Image.new("RGBA", mask.size, color + (0,))
+    out.putalpha(mask)
+    return out.resize((size, size), Image.LANCZOS)
+
+
+def export_glyphs():
+    assets = "firefox-ios/Client/Assets/Images.xcassets"
+    for scale in (1, 2, 3):
+        suffix = "" if scale == 1 else f"@{scale}x"
+        white = glyph((255, 255, 255), 134 * scale)
+        white.save(f"{assets}/splash.imageset/splash{suffix}.png")
+        white.save(f"{assets}/splash.imageset/splash-dark{suffix}.png")
+    os.makedirs(f"{assets}/youtubexGlyph.imageset", exist_ok=True)
+    for scale in (1, 2, 3):
+        suffix = "" if scale == 1 else f"@{scale}x"
+        glyph(RED, 72 * scale).save(f"{assets}/youtubexGlyph.imageset/youtubexGlyph{suffix}.png")
+
+
+if __name__ == "__main__":
+    export_glyphs()
+    print("Wrote splash and youtubexGlyph images")
