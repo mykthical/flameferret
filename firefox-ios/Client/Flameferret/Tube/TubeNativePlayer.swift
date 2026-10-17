@@ -41,7 +41,7 @@ enum TubeStreams {
         let extra: [String: Any]
     }
 
-    private static let clients: [Client] = [
+    private static var clients: [Client] { [
         Client(name: "IOS", id: "5", version: "20.10.4",
                userAgent: "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
                extra: ["deviceMake": "Apple", "deviceModel": "iPhone16,2", "osName": "iPhone",
@@ -51,7 +51,7 @@ enum TubeStreams {
                    + "(Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
                extra: ["deviceMake": "Oculus", "deviceModel": "Quest 3", "androidSdkVersion": 32,
                        "osName": "Android", "osVersion": "12L"]),
-    ]
+    ] }
 
     private static let session: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
