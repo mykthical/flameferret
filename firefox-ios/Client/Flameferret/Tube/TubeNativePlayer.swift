@@ -58,7 +58,7 @@ enum TubeStreams {
         configuration.httpCookieStorage = nil
         configuration.httpShouldSetCookies = false
         configuration.urlCache = nil
-        configuration.timeoutIntervalForRequest = 15
+        configuration.timeoutIntervalForRequest = 6
         return URLSession(configuration: configuration)
     }()
 

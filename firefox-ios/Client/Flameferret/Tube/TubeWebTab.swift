@@ -18,6 +18,8 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         case player
         /// A normal page (sign-in, comments, anything the native screens don't cover).
         case page
+        /// YouTube's embed player (what DuckDuckGo's Duck Player uses): fills the view, letterboxed.
+        case embed
     }
 
     static let windowUUID = WindowUUID()
@@ -50,7 +52,7 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
             webView.customUserAgent = UserAgent.mobileUserAgent()
             webView.allowsBackForwardNavigationGestures = mode == .page
             webView.scrollView.layer.masksToBounds = true
-            if mode == .player {
+            if mode != .page {
                 webView.scrollView.isScrollEnabled = false
                 webView.scrollView.contentInsetAdjustmentBehavior = .never
                 webView.isOpaque = false
@@ -72,7 +74,12 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
                                                selector: #selector(extensionsDidChange),
                                                name: .webExtensionsDidChange,
                                                object: nil)
-        tab.loadRequest(URLRequest(url: url))
+        var request = URLRequest(url: url)
+        if mode == .embed {
+            // The embed player refuses to load without a referring page (YouTube's "Error 153").
+            request.setValue("https://www.youtube.com/", forHTTPHeaderField: "Referer")
+        }
+        tab.loadRequest(request)
     }
 
     var webView: WKWebView? { tab.webView }
@@ -158,7 +165,9 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
             }
             if (!message) {
               const walls = ['not a bot', 'Sign in to confirm', 'Video unavailable', 'This video is private',
-                             'age-restricted', 'Something went wrong', 'An error occurred'];
+                             'age-restricted', 'Something went wrong', 'An error occurred',
+                             'Playback on other websites', 'Watch on YouTube', 'Watch this video on YouTube',
+                             'Error 15'];
               for (const w of walls) {
                 if (body.indexOf(w) >= 0) {
                   const lines = body.split(String.fromCharCode(10)).filter(l => l.indexOf(w) >= 0);
@@ -217,6 +226,18 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         return PageStream(url: url, userAgent: values[2] as? String ?? "")
     }
 
+    /// Starts Picture in Picture if the video is playing (used when leaving the app).
+    func enterPictureInPictureIfPlaying() {
+        let js = """
+            const v = document.querySelector('video');
+            if (v && !v.paused && v.webkitSupportsPresentationMode
+                && v.webkitSupportsPresentationMode('picture-in-picture')) {
+              v.webkitSetPresentationMode('picture-in-picture');
+            }
+            """
+        webView?.evaluateJavaScript(js, in: nil, in: .page)
+    }
+
     /// Asks the page to start the video (YouTube sometimes waits for a tap).
     func play() {
         webView?.evaluateJavaScript("const v = document.querySelector('video'); if (v && v.paused) { v.play().catch(() => {}); }",
@@ -273,7 +294,12 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
     }
 
     private static func chromeHidingJS(for mode: Mode) -> String {
-        let css = mode == .player ? playerCSS : pageCSS
+        let css: String
+        switch mode {
+        case .player: css = playerCSS
+        case .page: css = pageCSS
+        case .embed: css = embedCSS
+        }
         let escaped = css.replacingOccurrences(of: "`", with: "\\`")
         return """
             (() => {
@@ -300,6 +326,13 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         ytm-paid-content-overlay-renderer { display: none !important; }
         body, #app, .page-container, .mobile-topbar-header-content { padding-top: 0 !important; margin-top: 0 !important; }
         :root { --ytm-header-height: 0px !important; --ytm-pivot-bar-height: 0px !important; }
+        """
+
+    /// The embed player already fills the page; only its title bar and "more videos" overlay go.
+    private static let embedCSS = """
+        html, body { background: #000 !important; }
+        .ytp-chrome-top, .ytp-pause-overlay, .ytp-show-cards-title, .ytp-watermark,
+        .ytp-youtube-button, .ytp-impression-link { display: none !important; }
         """
 
     /// Shows only the video player. YouTube's own layout puts the player at the top of the page at
@@ -361,7 +394,7 @@ struct TubeWebTabView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UIView {
         let container = UIView()
-        container.backgroundColor = webTab.mode == .player ? .black : .systemBackground
+        container.backgroundColor = webTab.mode == .page ? .systemBackground : .black
         attach(to: container)
         return container
     }

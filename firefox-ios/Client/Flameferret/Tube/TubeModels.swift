@@ -37,6 +37,11 @@ struct TubeVideo: Identifiable, Hashable, Codable, Sendable {
 
     var shareURL: URL { URL(string: "https://youtu.be/\(id)") ?? TubeLinks.home }
     var watchURL: URL { URL(string: "https://m.youtube.com/watch?v=\(id)") ?? TubeLinks.home }
+    /// YouTube's embed player for this video.
+    var embedURL: URL {
+        URL(string: "https://www.youtube.com/embed/\(id)?playsinline=1&autoplay=1&rel=0&iv_load_policy=3&fs=1")
+            ?? watchURL
+    }
 
     var channel: TubeChannel? {
         guard let channelID else { return nil }

@@ -26,8 +26,6 @@ final class TubePlayerModel: ObservableObject {
     @Published private(set) var comments: TubeCommentsModel?
     /// Why the native player wasn't used, for the web fallback's banner.
     private(set) var nativeFailure: String?
-    /// Filled in by the direct stream request when it succeeds.
-    private var directStream: TubeStreams.Stream?
 
 
     struct Stall: Equatable {
@@ -60,65 +58,54 @@ final class TubePlayerModel: ObservableObject {
         details?.video ?? (videoID == fallback.id ? fallback : TubeVideo(id: videoID, title: ""))
     }
 
-    /// Picks the player. The YouTube page loads (without playing) while two routes to a native stream
-    /// race: the stream the page itself was given, and a direct request like YouTube's apps make.
-    /// The first one found plays in Apple's player; if neither turns up, the page becomes the player.
+    /// Picks the player: Apple's player when YouTube hands the app a stream directly, otherwise
+    /// YouTube's embed player (as in DuckDuckGo's Duck Player), and the full watch page only for
+    /// videos whose owners turned embedding off.
     func startPlayback() async {
         guard phase == .resolving else { return }
         let id = videoID
-        let page = makeWebTab(autoplay: ProcessInfo.processInfo.arguments.contains("-webPlayer"))
-        webTab = page
-        if ProcessInfo.processInfo.arguments.contains("-webPlayer") {
-            phase = .web
-            await watchPlayback()
-            return
-        }
-
-        let direct = Task { [weak self] in
+        if !ProcessInfo.processInfo.arguments.contains("-webPlayer") {
             do {
                 let stream = try await TubeStreams.resolve(videoID: id)
-                self?.directStream = stream
+                guard !Task.isCancelled, id == videoID else { return }
+                let playback = TubeNativePlayback(stream: stream, videoID: id)
+                native = playback
+                phase = .native
+                playback.start()
+                updateNowPlaying()
+                return
+            } catch is CancellationError {
+                return
             } catch {
-                self?.nativeFailure = error.localizedDescription
+                nativeFailure = error.localizedDescription
+                TubeEngine.log("native player unavailable: \(error.localizedDescription)")
             }
         }
-        var found: TubeStreams.Stream?
-        for _ in 0..<24 {
-            if Task.isCancelled { break }
-            if let stream = directStream {
-                found = stream
-                break
-            }
-            if let stream = await page.pageStream(videoID: id) {
-                TubeEngine.log("native stream from page")
-                found = TubeStreams.Stream(url: stream.url, userAgent: stream.userAgent, client: "page")
-                break
-            }
-            try? await Task.sleep(nanoseconds: 500_000_000)
-        }
-        direct.cancel()
         guard !Task.isCancelled, id == videoID else { return }
 
-        if let found {
-            let playback = TubeNativePlayback(stream: found, videoID: id)
-            native = playback
-            phase = .native
-            webTab = nil
-            page.close()
-            playback.start()
-            updateNowPlaying()
-        } else {
-            TubeEngine.log("native player unavailable: \(nativeFailure ?? "no stream")")
-            phase = .web
-            page.play()
+        webTab = makeWebTab(url: video.embedURL, mode: .embed)
+        phase = .web
+        await watchPlayback()
+        if let message = stall?.message, Self.embeddingBlocked(message) {
+            TubeEngine.log("embed blocked, using the watch page")
+            webTab?.close()
+            stall = nil
+            webTab = makeWebTab(url: video.watchURL, mode: .player)
             await watchPlayback()
         }
     }
 
-    private func makeWebTab(autoplay: Bool) -> TubeWebTab {
-        let tab = TubeWebTab(url: video.watchURL, mode: .player, autoplay: autoplay)
+    private static func embeddingBlocked(_ message: String) -> Bool {
+        let lowered = message.lowercased()
+        return ["other websites", "watch on youtube", "watch this video on youtube", "error 15", "video unavailable"]
+            .contains { lowered.contains($0) }
+    }
+
+    private func makeWebTab(url: URL, mode: TubeWebTab.Mode) -> TubeWebTab {
+        let tab = TubeWebTab(url: url, mode: mode)
         tab.onNavigate = { [weak self] url in
-            guard let self, let id = TubeLinks.videoID(from: url.absoluteString), id != self.videoID else { return }
+            guard let self, mode == .player,
+                  let id = TubeLinks.videoID(from: url.absoluteString), id != self.videoID else { return }
             self.videoID = id
             self.details = nil
             self.comments = nil
@@ -127,6 +114,11 @@ final class TubePlayerModel: ObservableObject {
         }
         tab.activate()
         return tab
+    }
+
+    /// Leaving the app mid-video starts Picture in Picture, like Apple's player does.
+    func appWillResignActive() {
+        webTab?.enterPictureInPictureIfPlaying()
     }
 
     func loadDetails() async {
@@ -233,6 +225,9 @@ struct TubePlayerView: View {
         }
         .onAppear { model.webTab?.activate() }
         .onDisappear { model.didLeaveScreen() }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+            model.appWillResignActive()
+        }
         .task { await model.startPlayback() }
         .task(id: model.videoID) {
             if model.details == nil { await model.loadDetails() }
