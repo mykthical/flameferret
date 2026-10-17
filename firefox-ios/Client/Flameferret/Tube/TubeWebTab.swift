@@ -360,6 +360,13 @@ final class TubeWebTab: NSObject, ObservableObject, WKNavigationDelegate {
         #player-control-container, ytm-custom-control, .player-controls-background {
           background: transparent !important;
         }
+        #movie_player, .html5-video-player, .html5-video-container {
+          width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important;
+        }
+        video.video-stream, .html5-main-video {
+          width: 100% !important; height: 100% !important; left: 0 !important; top: 0 !important;
+          object-fit: contain !important;
+        }
         """
 
     // MARK: Navigation
