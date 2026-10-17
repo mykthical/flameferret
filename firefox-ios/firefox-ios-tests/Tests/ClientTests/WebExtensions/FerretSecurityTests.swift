@@ -28,6 +28,23 @@ final class FerretSecurityTests: XCTestCase {
         XCTAssertEqual(prefs.boolForKey(PrefsKeys.SearchSettings.showSearchSuggestions), true)
     }
 
+    // MARK: - Data protection
+
+    func testSettingsAndProfileKeepTheStandardClass() {
+        let home = URL(fileURLWithPath: "/app", isDirectory: true)
+        let group = URL(fileURLWithPath: "/group", isDirectory: true)
+        let plan = DataProtectionManager.plan(home: home, group: group)
+        let strong = plan.strong.map(\.path)
+        XCTAssertTrue(plan.standard.contains(group))
+        XCTAssertTrue(plan.standard.map(\.path).contains("/app/Library"))
+        XCTAssertFalse(strong.contains { $0.hasPrefix("/group") }, "profile and shared settings must stay readable")
+        XCTAssertFalse(strong.contains { $0.hasPrefix("/app/Library/Preferences") })
+        for folder in ["/app/Library/WebKit", "/app/Library/Cookies", "/app/Library/Caches",
+                       "/app/Library/Application Support/Flameferret", "/app/Documents/Downloads"] {
+            XCTAssertTrue(strong.contains(folder), folder)
+        }
+    }
+
     // MARK: - PIN setup
 
     @MainActor

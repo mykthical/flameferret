@@ -5,17 +5,28 @@
 import Common
 import Foundation
 import Shared
+import UIKit
 
-/// Raises iOS Data Protection on everything Flameferret stores — history, tabs, cookies, website data,
-/// the passwords database, extensions and AdGuard data — so it's encrypted with a key that only exists
-/// while the iPhone is unlocked.
+/// Sets iOS Data Protection on what the browser stores.
 ///
-/// iOS's default class keeps files readable from the first unlock until the phone restarts. The
-/// "complete unless open" class used here makes closed files unreadable shortly after the phone
-/// locks, while files that are already open (databases, downloads) keep working in the background.
+/// Website data, cookies, caches, downloads, extensions and ad-blocking data get the "complete unless open"
+/// class: their key is discarded shortly after the iPhone locks. Settings, the browser profile (history,
+/// bookmarks, tabs, the saved-passwords database) and everything else keep iOS's standard class, readable
+/// after the first unlock since restart: iOS starts browsers in the background while locked (sync,
+/// notifications, background refresh), and settings that can't be read then look empty and get
+/// overwritten with defaults. Saved passwords are also encrypted with their own key in the Keychain.
 enum DataProtectionManager {
     static let enabledKey = "FlameferretStrongDataProtection"
     private static let appliedKey = "FlameferretStrongDataProtectionApplied"
+    /// Bump when the folder plan changes, so existing installs get a full re-protection pass.
+    private static let planVersion = "2"
+
+    struct Plan: Equatable {
+        /// Folders (with everything inside) that keep the standard class.
+        let standard: [URL]
+        /// Folders (with everything inside) that get the strong class, applied after `standard`.
+        let strong: [URL]
+    }
 
     static var isEnabled: Bool {
         let defaults = UserDefaults.standard
@@ -23,46 +34,65 @@ enum DataProtectionManager {
         return defaults.bool(forKey: enabledKey)
     }
 
-    static var protectionClass: FileProtectionType {
+    static var strongClass: FileProtectionType {
         return isEnabled ? .completeUnlessOpen : .completeUntilFirstUserAuthentication
     }
 
+    @MainActor
     static func setEnabled(_ enabled: Bool) {
         UserDefaults.standard.set(enabled, forKey: enabledKey)
         apply()
     }
 
-    /// Protects the top-level folders on every launch, so new files inherit the class, and re-protects
-    /// every existing file whenever the setting changes.
+    static func plan(home: URL, group: URL?) -> Plan {
+        let library = home.appendingPathComponent("Library", isDirectory: true)
+        let support = library.appendingPathComponent("Application Support", isDirectory: true)
+        let standard = [home.appendingPathComponent("Documents", isDirectory: true),
+                        library,
+                        home.appendingPathComponent("tmp", isDirectory: true)] + (group.map { [$0] } ?? [])
+        let strong = [
+            library.appendingPathComponent("WebKit", isDirectory: true),
+            library.appendingPathComponent("Cookies", isDirectory: true),
+            library.appendingPathComponent("Caches", isDirectory: true),
+            support.appendingPathComponent("Flameferret", isDirectory: true),
+            home.appendingPathComponent("Documents/Downloads", isDirectory: true),
+            home.appendingPathComponent("tmp", isDirectory: true)
+        ]
+        return Plan(standard: standard, strong: strong)
+    }
+
+    /// Protects the folders on every launch so new files inherit the right class, and re-protects every
+    /// existing file when the setting or the plan changes. Skipped while the iPhone is locked, when
+    /// protected files can't be changed.
+    @MainActor
     static func apply() {
-        let roots = containerRoots()
-        let protection = protectionClass
-        let marker = protection.rawValue
+        guard UIApplication.shared.isProtectedDataAvailable else { return }
+        let plan = plan(home: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
+                        group: FileManager.default.containerURL(
+                            forSecurityApplicationGroupIdentifier: AppInfo.sharedContainerIdentifier))
+        let strong = strongClass
+        let marker = "\(planVersion):\(strong.rawValue)"
         let needsFullPass = UserDefaults.standard.string(forKey: appliedKey) != marker
 
         DispatchQueue.global(qos: .utility).async {
             let fileManager = FileManager.default
-            for root in roots {
-                setProtection(protection, on: root, fileManager: fileManager)
+            for root in plan.standard {
+                setProtection(.completeUntilFirstUserAuthentication, on: root, fileManager: fileManager)
                 if needsFullPass {
-                    protectContents(of: root, as: protection, fileManager: fileManager)
+                    protectContents(of: root, as: .completeUntilFirstUserAuthentication, fileManager: fileManager)
+                }
+            }
+            for root in plan.strong {
+                try? fileManager.createDirectory(at: root, withIntermediateDirectories: true)
+                setProtection(strong, on: root, fileManager: fileManager)
+                if needsFullPass {
+                    protectContents(of: root, as: strong, fileManager: fileManager)
                 }
             }
             if needsFullPass {
                 UserDefaults.standard.set(marker, forKey: appliedKey)
             }
         }
-    }
-
-    static func containerRoots() -> [URL] {
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
-        var roots = ["Documents", "Library", "tmp"].map { home.appendingPathComponent($0, isDirectory: true) }
-        if let group = FileManager.default.containerURL(
-            forSecurityApplicationGroupIdentifier: AppInfo.sharedContainerIdentifier
-        ) {
-            roots.append(group)
-        }
-        return roots
     }
 
     static func protectContents(of root: URL, as protection: FileProtectionType, fileManager: FileManager) {

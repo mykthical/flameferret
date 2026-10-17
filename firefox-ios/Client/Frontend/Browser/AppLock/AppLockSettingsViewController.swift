@@ -80,9 +80,10 @@ final class AppLockSettingsViewController: UITableViewController {
         }
         switch section {
         case 1:
-            return "Encrypts history, tabs, cookies, website data, saved passwords, extensions and ad-blocking data "
-                + "with a key that only exists while your iPhone is unlocked. Downloads and pages that are already "
-                + "open keep working in the background."
+            return "Encrypts website data, cookies, caches, downloads, extensions and ad-blocking data with a key "
+                + "that only exists while your iPhone is unlocked. Settings, history, tabs and the passwords database "
+                + "stay readable after your first unlock, so the browser keeps your settings when iOS starts it in "
+                + "the background. Saved passwords are also encrypted with their own key."
         case 2:
             return manager.isEnabled
                 ? "Always on while a PIN is set."

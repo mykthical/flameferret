@@ -97,7 +97,10 @@ class AppDelegate: UIResponder,
         // Then setup dependency container as it's needed for everything else
         DependencyHelper().bootstrapDependencies()
 
-        SecureDefaults.apply(to: profile.prefs)
+        // Never on a locked, just-restarted phone: settings can't be read then and would look like a new install.
+        if application.isProtectedDataAvailable {
+            SecureDefaults.apply(to: profile.prefs)
+        }
         appLaunchUtil = AppLaunchUtil(profile: profile)
         appLaunchUtil?.setUpPreLaunchDependencies()
 
